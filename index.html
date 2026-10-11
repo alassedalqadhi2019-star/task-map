@@ -199,7 +199,9 @@ select.input option{background:var(--panel-solid)}
 /* Modals */
 .modal-bg{position:fixed;inset:0;background:rgba(3,6,12,.55);backdrop-filter:blur(4px);z-index:50;display:none;align-items:center;justify-content:center;padding:16px}
 .modal-bg.open{display:flex}
-#taskModal{z-index:55}#arriveModal{z-index:58}
+#taskModal{z-index:55}#arriveModal{z-index:58}#diagModal{z-index:59}
+.diag-row{padding:8px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.diag-row pre{white-space:pre-wrap;word-break:break-word;direction:ltr;text-align:left;font-size:11.5px;color:var(--muted);margin:6px 0 0;font-family:ui-monospace,Menlo,monospace}
 .modal{width:min(520px,100%);max-height:calc(100vh - 32px);overflow:auto;background:var(--panel-solid);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:20px}
 .modal h2{margin:0 0 4px;font-size:19px}
 .modal .lead{color:var(--muted);font-size:13px;margin:0 0 16px;line-height:1.7}
@@ -366,7 +368,7 @@ code,.code{direction:ltr;unicode-bidi:isolate;background:var(--card-hi);border-r
       <label class="field">شكل الخريطة<select class="input" id="setView"><option value="vector">3D + زحمة مباشرة</option><option value="photo">3D واقعي (مباني حقيقية)</option></select></label>
     </div>
     <div class="note" style="margin-top:12px" id="usageNote"></div>
-    <div class="actions"><button class="btn primary" id="setSave">حفظ</button><button class="btn ghost" id="setClose">إغلاق</button><button class="btn danger sm" id="setClearDay" style="margin-right:auto">مسح مهام اليوم</button></div>
+    <div class="actions"><button class="btn primary" id="setSave">حفظ</button><button class="btn ghost" id="setClose">إغلاق</button><button class="btn sm" id="setDiag">🔧 اختبار جوجل</button><button class="btn danger sm" id="setClearDay" style="margin-right:auto">مسح مهام اليوم</button></div>
   </div>
 </div>
 
@@ -408,6 +410,16 @@ code,.code{direction:ltr;unicode-bidi:isolate;background:var(--card-hi);border-r
     <div class="todos" id="arTodos"></div>
     <form class="todo-add" id="arTodoForm" autocomplete="off"><input class="input" id="arTodoInput" placeholder="ضيف شي نسيته…"><button class="btn sm" type="submit">+</button></form>
     <div class="actions"><button class="btn primary" id="arOk">تمام 👍</button></div>
+  </div>
+</div>
+
+<!-- Diagnostics -->
+<div class="modal-bg" id="diagModal">
+  <div class="modal">
+    <h2 id="diagTitle">🔧 اختبار</h2>
+    <div id="diagBody"></div>
+    <p class="hint" style="margin-top:12px">صوّر هذي الشاشة وارسلها لـ Claude إذا فيه ❌.</p>
+    <div class="actions"><button class="btn primary" id="diagClose">تمام</button></div>
   </div>
 </div>
 
@@ -733,23 +745,27 @@ function decodePolyline(str) {
   return out;
 }
 let jsFields = ['durationMillis', 'staticDurationMillis', 'distanceMeters', 'path', 'speedPaths'];
-async function routeJS(a, b, mode, dep) {
+// request "levels": 0 = live traffic + traffic colours, 1 = live traffic only, 2 = plain route (no traffic options)
+const LEVELS = [{ pref: 'TRAFFIC_AWARE_OPTIMAL', poly: true }, { pref: 'TRAFFIC_AWARE', poly: false }, { pref: null, poly: false }];
+async function routeJS(a, b, mode, dep, lvl = 0) {
   const lib = await google.maps.importLibrary('routes');
   if (!lib.Route?.computeRoutes) throw new Error('Route class unavailable');
-  const drive = mode === 'DRIVE';
+  const drive = mode === 'DRIVE', L = LEVELS[lvl];
   const req = { origin: { lat: a.lat, lng: a.lng }, destination: { lat: b.lat, lng: b.lng }, travelMode: drive ? 'DRIVING' : 'WALKING', fields: jsFields };
-  if (drive) Object.assign(req, { routingPreference: 'TRAFFIC_AWARE_OPTIMAL', departureTime: new Date(dep), extraComputations: ['TRAFFIC_ON_POLYLINE'] });
+  if (drive && L.pref) Object.assign(req, { routingPreference: L.pref, departureTime: new Date(dep) });
+  if (drive && L.poly) req.extraComputations = ['TRAFFIC_ON_POLYLINE'];
   bump('routes');
   let res;
   try { res = await lib.Route.computeRoutes(req); }
   catch (e) {
-    if (jsFields.includes('speedPaths') && /field|mask|invalid/i.test(String(e.message || e))) { jsFields = ['durationMillis', 'staticDurationMillis', 'distanceMeters', 'path', 'travelAdvisory']; req.fields = jsFields; res = await lib.Route.computeRoutes(req); }
+    if (jsFields.includes('speedPaths')) { jsFields = ['durationMillis', 'staticDurationMillis', 'distanceMeters', 'path', 'travelAdvisory']; req.fields = jsFields; res = await lib.Route.computeRoutes(req); }
     else throw e;
   }
-  const r = res?.routes?.[0]; if (!r) throw new Error('NO_ROUTE');
-  const path = (r.path || []).map(p => [num(p.lat), num(p.lng)]);
+  const r = res?.routes?.[0]; if (!r) throw new Error('NO_ROUTE (Google رجّع بدون مسار)');
+  const path = (r.path || []).map(p => [num(p.lat), num(p.lng)]).filter(p => isFinite(p[0]) && isFinite(p[1]));
+  if (path.length < 2) throw new Error('EMPTY_PATH (المسار رجع فاضي)');
   let segs = [];
-  if (r.speedPaths?.length) segs = r.speedPaths.map(sp => ({ speed: sp.speed || 'NORMAL', path: (sp.path || []).map(p => [num(p.lat), num(p.lng)]) }));
+  if (r.speedPaths?.length) segs = r.speedPaths.map(sp => ({ speed: sp.speed || 'NORMAL', path: (sp.path || []).map(p => [num(p.lat), num(p.lng)]) })).filter(s => s.path.length > 1);
   else if (r.travelAdvisory?.speedReadingIntervals?.length) segs = intervalsToSegs(path, r.travelAdvisory.speedReadingIntervals);
   const durMs = r.durationMillis ?? r.staticDurationMillis;
   return { dur: Math.round(durMs / 1000), staticDur: Math.round((r.staticDurationMillis ?? durMs) / 1000), dist: r.distanceMeters || 0, path, segs };
@@ -757,16 +773,20 @@ async function routeJS(a, b, mode, dep) {
 function intervalsToSegs(path, iv) {
   return iv.map(x => ({ speed: x.speed || 'NORMAL', path: path.slice(x.startPolylinePointIndex || 0, (x.endPolylinePointIndex ?? path.length - 1) + 1) })).filter(s => s.path.length > 1);
 }
-async function routeREST(a, b, mode, dep) {
-  const drive = mode === 'DRIVE';
+async function routeREST(a, b, mode, dep, lvl = 0) {
+  const drive = mode === 'DRIVE', L = LEVELS[lvl];
   const body = { origin: { location: { latLng: { latitude: a.lat, longitude: a.lng } } }, destination: { location: { latLng: { latitude: b.lat, longitude: b.lng } } }, travelMode: drive ? 'DRIVE' : 'WALK', polylineQuality: 'OVERVIEW', units: 'METRIC', languageCode: 'ar' };
-  if (drive) Object.assign(body, { routingPreference: 'TRAFFIC_AWARE_OPTIMAL', departureTime: new Date(dep).toISOString(), extraComputations: ['TRAFFIC_ON_POLYLINE'] });
+  if (drive && L.pref) Object.assign(body, { routingPreference: L.pref, departureTime: new Date(dep).toISOString() });
+  if (drive && L.poly) body.extraComputations = ['TRAFFIC_ON_POLYLINE'];
   bump('routes');
-  const res = await fetch('https://routes.googleapis.com/directions/v2:computeRoutes', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Goog-Api-Key': settings.apiKey, 'X-Goog-FieldMask': 'routes.duration,routes.staticDuration,routes.distanceMeters,routes.polyline.encodedPolyline,routes.travelAdvisory.speedReadingIntervals' }, body: JSON.stringify(body) });
+  let res;
+  try { res = await fetch('https://routes.googleapis.com/directions/v2:computeRoutes', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Goog-Api-Key': settings.apiKey, 'X-Goog-FieldMask': 'routes.duration,routes.staticDuration,routes.distanceMeters,routes.polyline.encodedPolyline,routes.travelAdvisory.speedReadingIntervals' }, body: JSON.stringify(body) }); }
+  catch (e) { throw new Error('NETWORK: ' + (e.message || e)); }
   const j = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(j.error?.message || ('HTTP ' + res.status));
-  const r = j.routes?.[0]; if (!r) throw new Error('NO_ROUTE');
+  if (!res.ok) throw new Error(`HTTP ${res.status}: ${j.error?.status || ''} ${j.error?.message || ''}`.trim());
+  const r = j.routes?.[0]; if (!r) throw new Error('NO_ROUTE (Google رجّع بدون مسار)');
   const path = decodePolyline(r.polyline?.encodedPolyline || '');
+  if (path.length < 2) throw new Error('EMPTY_PATH (المسار رجع فاضي)');
   const dur = parseInt(r.duration, 10) || 0;
   return { dur, staticDur: parseInt(r.staticDuration, 10) || dur, dist: r.distanceMeters || 0, path, segs: intervalsToSegs(path, r.travelAdvisory?.speedReadingIntervals || []) };
 }
@@ -774,18 +794,24 @@ function estimateLeg(a, b, mode) {
   const d = haversine(a, b) * 1.35; const v = mode === 'WALK' ? 1.3 : 8.5; // m/s
   return { dur: Math.round(d / v + (mode === 'WALK' ? 0 : 120)), staticDur: 0, dist: d, path: [[a.lat, a.lng], [b.lat, b.lng]], segs: [], est: true };
 }
+let routeCfg = LS.get('routeCfg', null); // last request style that worked {kind, lvl}
+let routeErrors = [];
 async function fetchLeg(a, b, mode, dep) {
-  const order = routeBackend === 'rest' ? ['rest'] : routeBackend === 'est' ? [] : ['js', 'rest'];
-  let lastErr;
-  for (const kind of order) {
-    try { const r = kind === 'js' ? await routeJS(a, b, mode, dep) : await routeREST(a, b, mode, dep); routeBackend = kind; return r; }
-    catch (e) { lastErr = e; console.warn('route ' + kind + ' failed:', e); if (String(e.message) === 'NO_ROUTE') break; }
+  const tries = [];
+  if (routeCfg) tries.push(routeCfg);
+  for (const t of [{ kind: 'js', lvl: 0 }, { kind: 'rest', lvl: 0 }, { kind: 'js', lvl: 1 }, { kind: 'rest', lvl: 2 }, { kind: 'js', lvl: 2 }])
+    if (!routeCfg || routeCfg.kind !== t.kind || routeCfg.lvl !== t.lvl) tries.push(t);
+  const errs = [];
+  for (const t of tries) {
+    try {
+      const r = await (t.kind === 'js' ? routeJS : routeREST)(a, b, mode, dep, t.lvl);
+      if (!routeCfg || routeCfg.kind !== t.kind || routeCfg.lvl !== t.lvl) { routeCfg = t; LS.set('routeCfg', t); }
+      routeErrors = []; return r;
+    } catch (e) { errs.push(`${t.kind === 'js' ? 'Maps JS' : 'Routes REST'} (مستوى ${t.lvl}): ${String(e.message || e).slice(0, 220)}`); console.warn(t, e); }
   }
-  if (lastErr && String(lastErr.message) !== 'NO_ROUTE') {
-    if (!backendWarned) { backendWarned = true; toast('ما قدرت أجيب المسار من جوجل (تأكد إن Routes API مفعّل). أعرض وقت تقديري مؤقتاً.', true, 8000); }
-    if (!googleReady) routeBackend = 'est';
-  }
-  return estimateLeg(a, b, mode);
+  routeErrors = errs;
+  if (!backendWarned) { backendWarned = true; toast('ما قدرت أجيب الطريق من جوجل. اضغط على «وقت تقديري ⚠» تحت المسار عشان تشوف السبب.', true, 9000); }
+  const r = estimateLeg(a, b, mode); r.error = errs.join('\n'); return r;
 }
 async function getLeg(a, b, depMs, force) {
   const mode = settings.travelMode, now = Date.now();
@@ -882,7 +908,7 @@ const isToday = () => planDate === todayStr();
 
 /* ───────────────────────── Rendering ───────────────────────── */
 function trafficInfo(r) {
-  if (r.est) return { cls: 'warn', txt: 'وقت تقديري' };
+  if (r.est) return { cls: 'warn', txt: 'وقت تقديري ⚠', err: true };
   if (settings.travelMode !== 'DRIVE' || !r.staticDur) return null;
   const delay = r.dur - r.staticDur, ratio = delay / Math.max(60, r.staticDur);
   if (delay < 90 || ratio < .1) return { cls: 'ok', txt: 'الطريق سالك' };
@@ -921,7 +947,7 @@ function renderTimeline() {
     const legState = today ? (now >= L.arrive ? 'done' : (now >= L.depart ? 'leg-now' : '')) : '';
     const icon = settings.travelMode === 'WALK' ? '🚶' : '🚗';
     const waitTxt = li > 0 && (L.depart - stops[L.fromIdx].leave) > 60e3 ? `<span class="tag acc">وقت فاضي ${D((L.depart - stops[L.fromIdx].leave) / 1000)}</span>` : '';
-    h += `<div class="tl-item ${legState}"><div class="tl-rail"><div class="tl-line"></div></div><div class="leg">${waitTxt}${icon} <b>${D(r.dur)}</b> · ${KM(r.dist)} ${ti ? `<span class="tag ${ti.cls}">${ti.txt}</span>` : ''} ${trafficBar(r)}<a href="${navLink(L.from, L.to)}" target="_blank" rel="noopener">ابدأ الملاحة ↗</a></div></div>`;
+    h += `<div class="tl-item ${legState}"><div class="tl-rail"><div class="tl-line"></div></div><div class="leg">${waitTxt}${icon} <b>${D(r.dur)}</b> · ${KM(r.dist)} ${ti ? `<span class="tag ${ti.cls}" ${ti.err ? `data-legerr="${li}" style="cursor:pointer"` : ''}>${ti.txt}</span>` : ''} ${trafficBar(r)}<a href="${navLink(L.from, L.to)}" target="_blank" rel="noopener">ابدأ الملاحة ↗</a></div></div>`;
     if (L.toIdx >= 0) {
       const s = stops[L.toIdx], t = s.task;
       const state = today ? (now >= s.leave ? 'done' : (now >= s.arrive ? 'now' : '')) : '';
@@ -1218,6 +1244,29 @@ function toggleTodo(ti, id) {
   if (x.done && t.todos.every(y => y.done)) toast(`✅ خلصت كل مهام ${t.name}`);
 }
 
+/* ───────────────────────── Diagnostics ───────────────────────── */
+function showDiag(title, rows) {
+  $('#diagTitle').textContent = title;
+  $('#diagBody').innerHTML = rows.map(([k, ok, msg]) => `<div class="diag-row"><b>${ok === true ? '✅' : ok === false ? '❌' : '•'} ${esc(k)}</b>${msg ? `<pre>${esc(msg)}</pre>` : ''}</div>`).join('');
+  $('#diagModal').classList.add('open');
+}
+async function runDiagnostics() {
+  const rows = [['العنوان', null, location.origin + ' · ' + navigator.userAgent.slice(0, 90)]];
+  showDiag('🔧 اختبار الاتصال بجوجل', rows.concat([['أختبر…', null, '']]));
+  rows.push(['تحميل خرائط جوجل', googleReady, googleReady ? 'نسخة ' + (google.maps.version || '?') : 'ما تحمّلت — تأكد من المفتاح']);
+  const a = settings.home || gpsPos || DEFAULT_CENTER;
+  const b = plan.tasks[0] || { lat: a.lat + 0.012, lng: a.lng + 0.012 };
+  if (googleReady) {
+    try { const l = await searchPlaces('صيدلية', a); rows.push(['البحث عن أماكن (Places API New)', true, l.length + ' نتيجة']); }
+    catch (e) { rows.push(['البحث عن أماكن (Places API New)', false, String(e.message || e)]); }
+    for (const [kind, lvl, label] of [['js', 0, 'المسار + الزحمة (Maps JS)'], ['rest', 0, 'المسار + الزحمة (Routes REST)'], ['js', 2, 'مسار عادي بدون زحمة (Maps JS)'], ['rest', 2, 'مسار عادي بدون زحمة (Routes REST)']]) {
+      try { const r = await (kind === 'js' ? routeJS : routeREST)(a, b, settings.travelMode, Date.now() + 120000, lvl); rows.push([label, true, `${D(r.dur)} · ${KM(r.dist)} · ${r.path.length} نقطة`]); }
+      catch (e) { rows.push([label, false, String(e.message || e)]); }
+    }
+  }
+  showDiag('🔧 اختبار الاتصال بجوجل', rows);
+}
+
 /* ───────────────────────── Modals: setup & settings ───────────────────────── */
 function openSetup() { $('#keyInput').value = settings.apiKey || ''; $('#mapIdInput').value = settings.mapId || ''; $('#setupModal').classList.add('open'); }
 function openSettings() {
@@ -1303,6 +1352,8 @@ function wire() {
   $('#refreshBtn').onclick = () => { compute(true); toast('أحدّث الزحمة…'); };
 
   $('#timeline').onclick = e => {
+    const le = e.target.closest('[data-legerr]');
+    if (le) { const L = sched?.legs[+le.dataset.legerr]; showDiag('ليش الطريق خط مستقيم؟', [['السبب من جوجل', false, L?.r?.error || routeErrors.join('\n') || 'ما فيه تفاصيل — جرّب ↻ تحديث']]); return; }
     const tdo = e.target.closest('[data-todo]');
     if (tdo) { e.stopPropagation(); const [i, id] = tdo.dataset.todo.split(':'); toggleTodo(+i, id); return; }
     const act = e.target.closest('[data-act]');
@@ -1341,6 +1392,8 @@ function wire() {
   $('#arTodos').onclick = e => { const row = e.target.closest('[data-tid]'); if (!row) return; toggleTodo(arriveIdx, row.dataset.tid); renderArriveTodos(); };
   $('#arTodoForm').onsubmit = e => { e.preventDefault(); const t = plan.tasks[arriveIdx]; if (!t) return; t.todos = t.todos || []; if (addTodoFromInput($('#arTodoInput'), t.todos)) { savePlan(); renderArriveTodos(); renderTimeline(); } };
   $('#arOk').onclick = () => $('#arriveModal').classList.remove('open');
+  $('#diagClose').onclick = () => $('#diagModal').classList.remove('open');
+  $('#setDiag').onclick = () => { $('#settingsModal').classList.remove('open'); runDiagnostics(); };
   $('#tmCancel').onclick = closeTask;
   $('#tmDelete').onclick = () => {
     if (editMode === 'place') { places = places.filter(p => p.id !== editing.id); savePlaces(); renderSaved(); renderPlacesList(); closeTask(); toast('انحذف من أماكني'); return; }
