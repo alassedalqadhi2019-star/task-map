@@ -487,6 +487,12 @@ const DEFAULT_CENTER = { lat: 30.0444, lng: 31.2357 };
 
 /* ───────────────────────── state ───────────────────────── */
 const settings = Object.assign({ apiKey: '', mapId: '', view: 'vector', traffic: true, travelMode: 'DRIVE', refreshMin: 10, home: null }, LS.get('settings', {}));
+// Keys pasted on iPhone (esp. via WhatsApp/Notes or into an RTL field) can carry invisible direction marks/spaces.
+// Safari then refuses to send them in a request header ("Type error"), so routes and search fail. Keep only real key characters.
+const cleanKey = k => String(k || '').replace(/[^A-Za-z0-9_\-]/g, '');
+const keyHadJunk = settings.apiKey && cleanKey(settings.apiKey) !== settings.apiKey;
+const cleanMapId = k => String(k || '').replace(/[^A-Za-z0-9_\-]/g, '');
+if (keyHadJunk || cleanMapId(settings.mapId) !== settings.mapId) { settings.apiKey = cleanKey(settings.apiKey); settings.mapId = cleanMapId(settings.mapId); try { localStorage.setItem('tm.settings', JSON.stringify(settings)); } catch {} }
 const saveSettings = () => LS.set('settings', settings);
 let planDate = todayStr();
 const loadPlan = d => Object.assign({ tasks: [], readyAt: '', returnHome: true }, LS.get('plan.' + d, {}));
@@ -1253,6 +1259,7 @@ function showDiag(title, rows) {
 async function runDiagnostics() {
   const rows = [['العنوان', null, location.origin + ' · ' + navigator.userAgent.slice(0, 90)]];
   showDiag('🔧 اختبار الاتصال بجوجل', rows.concat([['أختبر…', null, '']]));
+  rows.push(['المفتاح', /^AIza[A-Za-z0-9_\-]{35}$/.test(settings.apiKey), `${settings.apiKey.length} حرف${keyHadJunk ? ' — كان فيه رموز مخفية وانشالت تلقائياً ✓' : ''}`]);
   rows.push(['تحميل خرائط جوجل', googleReady, googleReady ? 'نسخة ' + (google.maps.version || '?') : 'ما تحمّلت — تأكد من المفتاح']);
   const a = settings.home || gpsPos || DEFAULT_CENTER;
   const b = plan.tasks[0] || { lat: a.lat + 0.012, lng: a.lng + 0.012 };
@@ -1276,6 +1283,7 @@ function openSettings() {
   $('#settingsModal').classList.add('open');
 }
 async function applyKey(key, mapId) {
+  key = cleanKey(key); mapId = cleanMapId(mapId);
   const changed = key !== settings.apiKey || (mapId || '') !== (settings.mapId || '');
   settings.apiKey = key; settings.mapId = mapId || ''; saveSettings();
   if (!key) return;
