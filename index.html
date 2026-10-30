@@ -140,6 +140,32 @@ select.input option{background:var(--panel-solid)}
 .place-row .n{font-weight:600;font-size:14px}
 .place-row .s{font-size:12px;color:var(--muted)}
 .place-list{display:flex;flex-direction:column;gap:8px}
+.plan-actions{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px}
+.done-strip{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;align-items:center}
+.done-chip{font-size:12px;border-radius:999px;padding:3px 10px;background:var(--ok-soft);color:var(--ok);border:0;cursor:pointer}
+.done-chip:hover{text-decoration:line-through}
+.leg .lbtn{border:0;background:var(--card-hi);color:var(--muted);border-radius:7px;font-size:11.5px;padding:2px 7px}
+.leg .lbtn:hover{color:var(--text);background:var(--accent-soft)}
+.bt-row{display:grid;grid-template-columns:70px 1fr 64px;gap:10px;align-items:center;padding:7px 8px;border-radius:10px;font-size:13px}
+.bt-row.best{background:var(--ok-soft)}
+.bt-row.cur{outline:1px dashed var(--accent)}
+.bt-bar{height:10px;border-radius:5px;background:var(--line);overflow:hidden}
+.bt-bar i{display:block;height:100%;border-radius:5px}
+.bt-row button{border:0;background:var(--accent);color:#fff;border-radius:7px;font-size:11.5px;padding:3px 6px}
+.tpl-row{padding:10px;border-radius:12px;background:var(--card);border:1px solid var(--line);display:flex;flex-direction:column;gap:8px}
+.days{display:flex;gap:4px;flex-wrap:wrap}
+.days button{border:1px solid var(--line);background:var(--card);border-radius:8px;font-size:12px;padding:3px 7px;color:var(--muted)}
+.days button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.rep-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:10px 0 14px}
+.rep-grid .stat .v{font-size:18px}
+.rep-bars{display:flex;align-items:flex-end;gap:8px;height:120px;padding:8px 4px 0;border-bottom:1px solid var(--line)}
+.rep-bars .b{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px;font-size:11px;color:var(--muted)}
+.rep-bars .b i{display:block;width:100%;max-width:34px;border-radius:6px 6px 2px 2px;background:var(--accent);min-height:2px}
+.rep-bars .b i.lost{background:var(--bad)}
+.rep-days{display:flex;gap:8px;padding:4px 4px 0}
+.rep-days span{flex:1;text-align:center;font-size:11px;color:var(--muted)}
+.rep-list{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.rep-list div{display:flex;justify-content:space-between;font-size:13.5px;padding:6px 10px;background:var(--card);border-radius:9px}
 .chip{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 11px;font-size:13px;display:inline-flex;gap:5px;align-items:center}
 .chip:hover,.chip.on{border-color:var(--accent);background:var(--accent-soft)}
 .search{position:relative;margin-top:10px}
@@ -199,7 +225,7 @@ select.input option{background:var(--panel-solid)}
 /* Modals */
 .modal-bg{position:fixed;inset:0;background:rgba(3,6,12,.55);backdrop-filter:blur(4px);z-index:50;display:none;align-items:center;justify-content:center;padding:16px}
 .modal-bg.open{display:flex}
-#taskModal{z-index:55}#arriveModal{z-index:58}#diagModal{z-index:59}
+#taskModal{z-index:55}#arriveModal{z-index:58}#diagModal{z-index:59}#bestModal{z-index:57}
 .diag-row{padding:8px 0;border-bottom:1px solid var(--line);font-size:13.5px}
 .diag-row pre{white-space:pre-wrap;word-break:break-word;direction:ltr;text-align:left;font-size:11.5px;color:var(--muted);margin:6px 0 0;font-family:ui-monospace,Menlo,monospace}
 .modal{width:min(520px,100%);max-height:calc(100vh - 32px);overflow:auto;background:var(--panel-solid);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:20px}
@@ -283,6 +309,7 @@ code,.code{direction:ltr;unicode-bidi:isolate;background:var(--card-hi);border-r
   <div class="sheet-handle" id="sheetHandle"></div>
   <div class="panel-head">
     <h1>🗺️ خريطة مهامي</h1>
+    <button class="iconbtn" id="btnTpl" title="أيامي الجاهزة">📋</button><button class="iconbtn" id="btnReport" title="تقرير الأسبوع">📊</button>
     <input type="date" class="input" id="planDate" style="width:auto;padding:6px 9px;font-size:13px">
   </div>
   <div class="panel-body" id="panelBody">
@@ -297,6 +324,7 @@ code,.code{direction:ltr;unicode-bidi:isolate;background:var(--card-hi);border-r
             <button class="btn sm" id="homeSearch" title="ابحث عن عنوان البيت">🔎</button>
           </div>
         </div>
+        <div class="row" style="margin-top:12px;justify-content:space-between"><span class="hint">أبدأ اليوم من:</span><div class="seg" id="startFrom"><button data-v="home" class="on">🏠 البيت</button><button data-v="here">📡 مكاني الحالي</button></div></div>
         <div class="grid2" style="margin-top:12px">
           <label class="field">جاهز أطلع من الساعة<input type="time" class="input" id="readyAt"></label>
           <label class="field">طريقة التنقل<select class="input" id="travelMode"><option value="DRIVE">🚗 سيارة</option><option value="WALK">🚶 مشي</option></select></label>
@@ -324,6 +352,11 @@ code,.code{direction:ltr;unicode-bidi:isolate;background:var(--card-hi);border-r
 
     <div class="section" id="secPlan">
       <div class="section-title"><span class="grow">مخطط اليوم</span><button class="btn sm ghost" id="refreshBtn" title="حدّث الزحمة الآن">↻ تحديث</button><a class="btn sm ghost" id="openAllGmaps" target="_blank" rel="noopener" style="text-decoration:none">افتح في جوجل ماب ↗</a></div>
+      <div class="plan-actions" id="planActions">
+        <button class="btn sm" id="btnHere" title="احسب باقي اليوم من مكانك الحين">📡 كمّل من مكاني الحين</button>
+        <button class="btn sm" id="btnOptimize" title="رتّب المشاوير المرنة بأقصر طريق">⚡ رتّب بأقصر طريق</button>
+        <button class="btn sm ghost" id="btnUndoOrder" style="display:none">↩︎ رجّع الترتيب</button>
+      </div>
       <div id="timeline"></div>
     </div>
   </div>
@@ -367,6 +400,7 @@ code,.code{direction:ltr;unicode-bidi:isolate;background:var(--card-hi);border-r
       <label class="field">تحديث الزحمة كل<select class="input" id="setRefresh"><option value="5">5 دقايق</option><option value="10">10 دقايق</option><option value="15">15 دقيقة</option><option value="30">30 دقيقة</option><option value="0">يدوي فقط</option></select></label>
       <label class="field">شكل الخريطة<select class="input" id="setView"><option value="vector">3D + زحمة مباشرة</option><option value="photo">3D واقعي (مباني حقيقية)</option></select></label>
     </div>
+    <label class="toggle" style="margin-top:12px"><input type="checkbox" id="setParking"> 🅿️ احسب وقت الباركنق لكل مكان</label>
     <div class="note" style="margin-top:12px" id="usageNote"></div>
     <div class="actions"><button class="btn primary" id="setSave">حفظ</button><button class="btn ghost" id="setClose">إغلاق</button><button class="btn sm" id="setDiag">🔧 اختبار جوجل</button><button class="btn danger sm" id="setClearDay" style="margin-right:auto">مسح مهام اليوم</button></div>
   </div>
@@ -381,6 +415,8 @@ code,.code{direction:ltr;unicode-bidi:isolate;background:var(--card-hi);border-r
     <div class="field" style="margin:16px 0 8px">⏱️ كم بتجلس هناك؟</div>
     <div class="chips stay-chips" id="tmStay"></div>
     <div class="row" style="margin-top:8px"><span class="hint">أو بالدقايق:</span><input type="number" min="0" step="5" class="input num" id="tmStayCustom" style="width:90px"></div>
+    <div class="field" style="margin:16px 0 8px">🅿️ وقت الباركنق والمشي للمدخل</div>
+    <div class="chips" id="tmPark"></div>
     <div class="field" style="margin:16px 0 0">📝 المهام اللي تسويها هناك <span class="hint" id="tmTodoHint">(تطلع لك أول ما توصل)</span></div>
     <div class="todos" id="tmTodos"></div>
     <form class="todo-add" id="tmTodoForm" autocomplete="off"><input class="input" id="tmTodoInput" placeholder="مثلاً: حليب، بيض، خبز… (Enter للإضافة)"><button class="btn sm" type="submit">+ ضيف</button></form>
@@ -410,6 +446,41 @@ code,.code{direction:ltr;unicode-bidi:isolate;background:var(--card-hi);border-r
     <div class="todos" id="arTodos"></div>
     <form class="todo-add" id="arTodoForm" autocomplete="off"><input class="input" id="arTodoInput" placeholder="ضيف شي نسيته…"><button class="btn sm" type="submit">+</button></form>
     <div class="actions"><button class="btn primary" id="arOk">تمام 👍</button></div>
+  </div>
+</div>
+
+<!-- Best time to leave -->
+<div class="modal-bg" id="bestModal">
+  <div class="modal">
+    <h2 id="bestTitle">⏱️ أحسن وقت تطلع</h2>
+    <p class="lead" id="bestLead"></p>
+    <div id="bestBody"></div>
+    <div class="actions"><button class="btn ghost" id="bestClose">إغلاق</button></div>
+  </div>
+</div>
+
+<!-- Templates -->
+<div class="modal-bg" id="tplModal">
+  <div class="modal">
+    <h2>📋 أيامي الجاهزة</h2>
+    <p class="lead">احفظ يوم كامل (مثل «يوم الجيم») وحطه بضغطة. ولو اخترت أيام الأسبوع، ينحط تلقائياً في أي يوم فاضي يطابقها.</p>
+    <div class="place-list" id="tplList"></div>
+    <div class="card" style="margin-top:14px">
+      <div class="field" style="margin-bottom:6px">💾 احفظ يومك الحالي كقالب</div>
+      <div class="row"><input class="input" id="tplName" placeholder="مثلاً: يوم الجيم"><button class="btn primary sm" id="tplSave">حفظ</button></div>
+      <div class="field" style="margin:10px 0 6px">يتكرر تلقائياً كل (اختياري):</div>
+      <div class="days" id="tplDays"></div>
+    </div>
+    <div class="actions"><button class="btn ghost" id="tplClose">إغلاق</button></div>
+  </div>
+</div>
+
+<!-- Weekly report -->
+<div class="modal-bg" id="reportModal">
+  <div class="modal">
+    <h2>📊 تقرير آخر 7 أيام</h2>
+    <div id="reportBody"></div>
+    <div class="actions"><button class="btn ghost" id="reportClose">إغلاق</button></div>
   </div>
 </div>
 
@@ -486,7 +557,11 @@ const SPEED_COLORS = { NORMAL: '#4f8cff', SLOW: '#f59e0b', TRAFFIC_JAM: '#ef4444
 const DEFAULT_CENTER = { lat: 30.0444, lng: 31.2357 };
 
 /* ───────────────────────── state ───────────────────────── */
-const settings = Object.assign({ apiKey: '', mapId: '', view: 'vector', traffic: true, travelMode: 'DRIVE', refreshMin: 10, home: null }, LS.get('settings', {}));
+const settings = Object.assign({ apiKey: '', mapId: '', view: 'vector', traffic: true, travelMode: 'DRIVE', refreshMin: 10, home: null, parking: true }, LS.get('settings', {}));
+// default minutes to park + walk to the door, by place type
+const PARK = { '🛍️': 10, '🏥': 10, '🎓': 10, '🏢': 8, '🛒': 6, '🏋️': 5, '💈': 5, '☕': 5, '🍽️': 5, '🕌': 4, '📚': 5, '👨‍👩‍👦': 3, '💊': 3, '🏧': 2, '⛽': 0, '🚗': 0 };
+const parkDefault = t => PARK[t.emoji] ?? 4;
+const parkFor = t => (settings.parking === false || settings.travelMode === 'WALK') ? 0 : (t.parkMin ?? parkDefault(t));
 // Keys pasted on iPhone (esp. via WhatsApp/Notes or into an RTL field) can carry invisible direction marks/spaces.
 // Safari then refuses to send them in a request header ("Type error"), so routes and search fail. Keep only real key characters.
 const cleanKey = k => String(k || '').replace(/[^A-Za-z0-9_\-]/g, '');
@@ -836,44 +911,50 @@ let computeGen = 0;
 async function compute(force = false) {
   const gen = ++computeGen;
   const home = settings.home, tasks = plan.tasks;
-  if (!home || !tasks.length) { sched = null; lastCompute = Date.now(); renderAll(); return; }
+  if (!home || !tasks.some(t => !t.done)) { sched = null; lastCompute = Date.now(); renderAll(); return; }
   $('#refreshBtn').disabled = true;
   try {
     const now = Date.now();
     let avail = plan.readyAt ? atTime(planDate, plan.readyAt) : now;
     const readyMs = avail;
-    let cur = { ...home, kind: 'home' };
+    const startHere = plan.startFrom === 'here' && plan.hereLoc;
+    let cur = startHere ? { name: 'مكانك', emoji: '📡', lat: plan.hereLoc.lat, lng: plan.hereLoc.lng, kind: 'here' } : { ...home, emoji: '🏠', kind: 'home' };
+    const start = cur;
     const legs = [], stops = [];
+    let prevIdx = -1;
     for (let i = 0; i < tasks.length; i++) {
       const t = tasks[i];
+      if (t.done) continue;
+      const park = parkFor(t) * 60;
       let leg, depart, arrive, late = 0, wait = 0, target = null;
       if (t.arriveMode === 'at' && t.arriveAt) {
         target = atTime(planDate, t.arriveAt);
         const prevGuess = legCache.get(legKey(cur, t, settings.travelMode, target - 20 * 6e4));
-        let guess = target - (prevGuess?.dur || 20 * 60) * 1000;
+        let guess = target - ((prevGuess?.dur || 20 * 60) + park) * 1000;
         leg = await getLeg(cur, t, guess, force);
-        depart = target - leg.dur * 1000;
-        if (Math.floor(depart / 9e5) !== Math.floor(guess / 9e5)) { leg = await getLeg(cur, t, depart, force); depart = target - leg.dur * 1000; }
-        if (depart < avail) { depart = avail; leg = await getLeg(cur, t, depart, force); arrive = depart + leg.dur * 1000; late = Math.max(0, (arrive - target) / 1000); if (late < 60) { late = 0; } }
+        depart = target - (leg.dur + park) * 1000;
+        if (Math.floor(depart / 9e5) !== Math.floor(guess / 9e5)) { leg = await getLeg(cur, t, depart, force); depart = target - (leg.dur + park) * 1000; }
+        if (depart < avail) { depart = avail; leg = await getLeg(cur, t, depart, force); arrive = depart + (leg.dur + park) * 1000; late = Math.max(0, (arrive - target) / 1000); if (late < 60) { late = 0; } }
         else { wait = (depart - avail) / 1000; arrive = target; }
       } else {
-        depart = avail; leg = await getLeg(cur, t, depart, force); arrive = depart + leg.dur * 1000;
+        depart = avail; leg = await getLeg(cur, t, depart, force); arrive = depart + (leg.dur + park) * 1000;
       }
       if (gen !== computeGen) return;
       const leave = arrive + (t.stayMin || 0) * 6e4;
-      legs.push({ from: cur, to: t, fromIdx: i - 1, toIdx: i, depart, arrive, r: leg, waitBefore: wait });
-      stops.push({ task: t, idx: i, arrive, leave, late, target });
-      avail = leave; cur = t;
+      legs.push({ from: cur, to: t, fromIdx: prevIdx, toIdx: i, depart, arrive, r: leg, waitBefore: wait, park });
+      stops[i] = { task: t, idx: i, arrive, leave, late, target };
+      avail = leave; cur = t; prevIdx = i;
     }
     let homeArrive = null;
     if (plan.returnHome) {
       const leg = await getLeg(cur, home, avail, force);
       if (gen !== computeGen) return;
       homeArrive = avail + leg.dur * 1000;
-      legs.push({ from: cur, to: { ...home, kind: 'home' }, fromIdx: tasks.length - 1, toIdx: -1, depart: avail, arrive: homeArrive, r: leg, waitBefore: 0 });
+      legs.push({ from: cur, to: { ...home, kind: 'home' }, fromIdx: prevIdx, toIdx: -1, depart: avail, arrive: homeArrive, r: leg, waitBefore: 0, park: 0 });
     }
-    sched = { readyMs, legs, stops, homeArrive, end: homeArrive ?? avail };
+    sched = { readyMs, legs, stops, start, homeArrive, end: homeArrive ?? avail };
     lastCompute = Date.now();
+    saveStats(); ensureHours();
     renderAll(); checkArrival();
   } finally { if (gen === computeGen) $('#refreshBtn').disabled = false; }
 }
@@ -938,28 +1019,31 @@ function untilTxt(ms) { const s = (ms - Date.now()) / 1000; return s > 0 ? `بع
 function renderTimeline() {
   const el = $('#timeline');
   if (!settings.home) { el.innerHTML = `<div class="empty"><span class="e">🏠</span>أول شي حدد البيت من فوق،<br>بعدين ضيف مهامك وأرسم لك اليوم كامل.</div>`; return; }
-  if (!plan.tasks.length) { el.innerHTML = `<div class="empty"><span class="e">🗺️</span>ما فيه مهام لهذا اليوم.<br>اختار من الأزرار فوق (جيم، سوبرماركت…)<br>أو ابحث عن مكان، أو حدده من الخريطة.</div>`; return; }
+  const doneStrip = plan.tasks.some(t => t.done) ? `<div class="done-strip"><span class="hint">خلصت:</span>${plan.tasks.map((t, i) => t.done ? `<button class="done-chip" data-undone="${i}" title="رجّعها للمخطط">✓ ${t.emoji} ${esc(t.name)}</button>` : '').join('')}</div>` : '';
+  if (!plan.tasks.some(t => !t.done)) { el.innerHTML = doneStrip + (plan.tasks.length ? `<div class="empty"><span class="e">🎉</span>خلصت كل مهام اليوم.</div>` : `<div class="empty"><span class="e">🗺️</span>ما فيه مهام لهذا اليوم.<br>اختار من الأزرار فوق (جيم، سوبرماركت…)<br>أو ابحث عن مكان، أو حدده من الخريطة.</div>`); return; }
   if (!sched) { el.innerHTML = `<div class="empty"><span class="e">⏳</span>أحسب الطرق والزحمة…</div>`; return; }
   const now = Date.now(), today = isToday(), ph = today ? phaseAt(now) : { type: 'future' };
   const { legs, stops } = sched;
-  let h = '';
+  let h = doneStrip;
   // start
-  const L0 = legs[0];
+  const L0 = legs[0], st0 = sched.start || { kind: 'home', emoji: '🏠', name: settings.home.name };
   const started = today && now >= L0.depart;
   const wait0 = L0.waitBefore > 60 ? `<span class="tag acc">عندك ${D(L0.waitBefore)} قبل الطلعة</span>` : '';
-  h += `<div class="tl-item ${started ? 'done' : ''} ${ph.type === 'before' ? 'now' : ''}"><div class="tl-rail"><div class="tl-node">🏠</div><div class="tl-line"></div></div><div class="tl-content"><div class="stop-card" data-home="1"><div class="stop-top"><span class="stop-name">${esc(settings.home.name || 'البيت')}</span></div><div class="big-depart"><span class="hint">اطلع الساعة</span><span class="t">${T(L0.depart)}</span></div><div class="stop-meta">${today ? `<span class="tag ${started ? '' : 'acc'}">${started ? '✓ ' : ''}${untilTxt(L0.depart)}</span>` : ''}${wait0}</div></div></div></div>`;
+  h += `<div class="tl-item ${started ? 'done' : ''} ${ph.type === 'before' ? 'now' : ''}"><div class="tl-rail"><div class="tl-node">${st0.kind === 'here' ? '📡' : '🏠'}</div><div class="tl-line"></div></div><div class="tl-content"><div class="stop-card" data-home="1"><div class="stop-top"><span class="stop-name">${st0.kind === 'here' ? 'من مكانك الحالي' : esc(settings.home.name || 'البيت')}</span></div><div class="big-depart"><span class="hint">اطلع الساعة</span><span class="t">${T(L0.depart)}</span></div><div class="stop-meta">${today ? `<span class="tag ${started ? '' : 'acc'}">${started ? '✓ ' : ''}${untilTxt(L0.depart)}</span>` : ''}${wait0}</div></div></div></div>`;
   legs.forEach((L, li) => {
     const r = L.r, ti = trafficInfo(r);
     const legState = today ? (now >= L.arrive ? 'done' : (now >= L.depart ? 'leg-now' : '')) : '';
     const icon = settings.travelMode === 'WALK' ? '🚶' : '🚗';
     const waitTxt = li > 0 && (L.depart - stops[L.fromIdx].leave) > 60e3 ? `<span class="tag acc">وقت فاضي ${D((L.depart - stops[L.fromIdx].leave) / 1000)}</span>` : '';
-    h += `<div class="tl-item ${legState}"><div class="tl-rail"><div class="tl-line"></div></div><div class="leg">${waitTxt}${icon} <b>${D(r.dur)}</b> · ${KM(r.dist)} ${ti ? `<span class="tag ${ti.cls}" ${ti.err ? `data-legerr="${li}" style="cursor:pointer"` : ''}>${ti.txt}</span>` : ''} ${trafficBar(r)}<a href="${navLink(L.from, L.to)}" target="_blank" rel="noopener">ابدأ الملاحة ↗</a></div></div>`;
+    h += `<div class="tl-item ${legState}"><div class="tl-rail"><div class="tl-line"></div></div><div class="leg">${waitTxt}${icon} <b>${D(r.dur)}</b> · ${KM(r.dist)} ${ti ? `<span class="tag ${ti.cls}" ${ti.err ? `data-legerr="${li}" style="cursor:pointer"` : ''}>${ti.txt}</span>` : ''} ${trafficBar(r)}${L.park ? `<span class="tag" title="باركنق ومشي للمدخل">🅿️ +${Math.round(L.park / 60)} د</span>` : ''}<button class="lbtn" data-best="${li}" title="قارن أوقات الطلعة">⏱️ أحسن وقت</button><a href="${navLink(L.from, L.to)}" target="_blank" rel="noopener">ابدأ الملاحة ↗</a></div></div>`;
     if (L.toIdx >= 0) {
       const s = stops[L.toIdx], t = s.task;
       const state = today ? (now >= s.leave ? 'done' : (now >= s.arrive ? 'now' : '')) : '';
       const tags = [`<span class="tag">⏱️ ${D(t.stayMin * 60)}</span>`];
       if (s.target) tags.push(`<span class="tag acc">⏰ موعد ${T(s.target)}</span>`);
       if (s.late) tags.push(`<span class="tag bad">متأخر ${D(s.late)} عن الموعد</span>`);
+      const hs = t.placeId ? hoursStatus(t.placeId, s.arrive, s.leave) : null;
+      if (hs) tags.push(`<span class="tag ${hs.cls}">${hs.txt}</span>`);
       if (state === 'now') tags.push(`<span class="tag ok">أنت هنا · باقي ${D((s.leave - now) / 1000)}</span>`);
       else if (today && !state) tags.push(`<span class="tag">توصل ${untilTxt(s.arrive)}</span>`);
       const td = t.todos || [];
@@ -1002,14 +1086,16 @@ function renderStatus() {
 function mapModel() {
   const now = Date.now(), today = isToday();
   const stops = [], legs = [];
-  if (settings.home) stops.push({ kind: 'home', name: settings.home.name || 'البيت', emoji: '🏠', lat: settings.home.lat, lng: settings.home.lng, time: sched ? `${T(sched.legs[0].depart)}` : '' });
+  const st0 = sched?.start;
+  if (st0 && st0.kind === 'here') stops.push({ kind: 'home', name: 'مكانك', emoji: '📡', lat: st0.lat, lng: st0.lng, time: T(sched.legs[0].depart) });
+  if (settings.home) stops.push({ kind: 'home', name: settings.home.name || 'البيت', emoji: '🏠', lat: settings.home.lat, lng: settings.home.lng, time: sched && (!st0 || st0.kind === 'home') ? `${T(sched.legs[0].depart)}` : '' });
   if (sched) {
-    for (const s of sched.stops) {
+    for (const s of sched.stops.filter(Boolean)) {
       const st = today ? (now >= s.leave ? 'done' : now >= s.arrive ? 'now' : '') : '';
       stops.push({ kind: 'task', idx: s.idx, name: s.task.name, emoji: s.task.emoji, lat: s.task.lat, lng: s.task.lng, time: T(s.arrive), state: st, left: todosLeft(s.task) });
     }
     for (const L of sched.legs) legs.push({ path: L.r.path, segs: L.r.segs || [], est: L.r.est, mode: settings.travelMode, state: today ? (now >= L.arrive ? 'done' : now >= L.depart ? 'now' : '') : '' });
-  } else plan.tasks.forEach((t, i) => stops.push({ kind: 'task', idx: i, name: t.name, emoji: t.emoji, lat: t.lat, lng: t.lng }));
+  } else plan.tasks.forEach((t, i) => { if (!t.done) stops.push({ kind: 'task', idx: i, name: t.name, emoji: t.emoji, lat: t.lat, lng: t.lng }); });
   return { stops, legs };
 }
 let lastModelSig = '', fittedOnce = false;
@@ -1035,11 +1121,13 @@ function renderAll() { renderTimeline(); renderSummary(); renderStatus(); drawMa
 
 function updateGmapsAll() {
   const a = $('#openAllGmaps');
-  if (!settings.home || !plan.tasks.length) { a.style.display = 'none'; return; }
+  const act = plan.tasks.filter(t => !t.done);
+  if (!settings.home || !act.length) { a.style.display = 'none'; return; }
   a.style.display = '';
   const u = new URL('https://www.google.com/maps/dir/'); u.searchParams.set('api', '1');
-  const pts = plan.tasks.map(t => `${t.lat},${t.lng}`);
-  u.searchParams.set('origin', `${settings.home.lat},${settings.home.lng}`);
+  const pts = act.map(t => `${t.lat},${t.lng}`);
+  const o = sched?.start || settings.home;
+  u.searchParams.set('origin', `${o.lat},${o.lng}`);
   if (plan.returnHome) { u.searchParams.set('destination', `${settings.home.lat},${settings.home.lng}`); if (pts.length) u.searchParams.set('waypoints', pts.join('|')); }
   else { u.searchParams.set('destination', pts[pts.length - 1]); if (pts.length > 1) u.searchParams.set('waypoints', pts.slice(0, -1).join('|')); }
   u.searchParams.set('travelmode', settings.travelMode === 'WALK' ? 'walking' : 'driving');
@@ -1056,6 +1144,7 @@ function renderDayInputs() {
   $('#readyAt').value = plan.readyAt || '';
   $('#returnHome').checked = plan.returnHome;
   $('#travelMode').value = settings.travelMode;
+  document.querySelectorAll('#startFrom button').forEach(b => b.classList.toggle('on', b.dataset.v === (plan.startFrom === 'here' ? 'here' : 'home')));
 }
 function syncToolButtons() {
   $('#btnTraffic').classList.toggle('on', settings.traffic && settings.view === 'vector');
@@ -1142,9 +1231,10 @@ function openTask(task, isNew, mode = 'task') {
   $('#tmEmojis').innerHTML = EMOJIS.map(e => `<button type="button" class="${e === editing.emoji ? 'on' : ''}" data-e="${e}">${e}</button>`).join('');
   $('#tmStay').innerHTML = STAYS.map(m => `<button type="button" class="chip ${m === editing.stayMin ? 'on' : ''}" data-m="${m}">${D(m * 60)}</button>`).join('');
   $('#tmStayCustom').value = STAYS.includes(editing.stayMin) ? '' : editing.stayMin;
+  renderTmPark();
   // default arrival suggestion
   if (!editing.arriveAt) {
-    const base = sched ? (sched.stops[sched.stops.length - 1]?.leave || Date.now()) : Date.now();
+    const base = sched ? (sched.stops.filter(Boolean).pop()?.leave || Date.now()) : Date.now();
     const r = new Date(Math.ceil((isNew ? base + 15 * 6e4 : Date.now()) / 9e5) * 9e5); editing.arriveAt = hm(r.getTime());
   }
   $('#tmArriveAt').value = editing.arriveAt;
@@ -1153,6 +1243,11 @@ function openTask(task, isNew, mode = 'task') {
   $('#tmSave').textContent = place ? 'حفظ المكان' : isNew ? 'ضيفها للمخطط' : 'حفظ';
   $('#taskModal').classList.add('open');
   setTimeout(() => $('#tmName').select(), 50);
+}
+const PARKS = [0, 2, 3, 5, 8, 10, 15];
+function renderTmPark() {
+  const v = editing.parkMin ?? parkDefault(editing);
+  $('#tmPark').innerHTML = PARKS.map(m => `<button type="button" class="chip ${m === v ? 'on' : ''}" data-pk="${m}">${m ? m + ' د' : 'بدون'}</button>`).join('') + (settings.parking === false ? `<span class="hint">(حساب الباركنق مقفل من الإعدادات)</span>` : '');
 }
 function setArriveMode(m) {
   editing.arriveMode = m;
@@ -1250,6 +1345,258 @@ function toggleTodo(ti, id) {
   if (x.done && t.todos.every(y => y.done)) toast(`✅ خلصت كل مهام ${t.name}`);
 }
 
+/* ───────────────────────── 1) Continue from where I am ───────────────────────── */
+async function hereNow() {
+  if (gpsPos) return gpsPos;
+  try { return await getGps(9000); } catch { toast('ما قدرت أوصل لموقعك — اسمح للمتصفح بالموقع', true); return null; }
+}
+async function replanFromHere() {
+  const p = await hereNow(); if (!p) return;
+  if (!isToday()) { planDate = todayStr(); plan = loadPlan(planDate); }
+  const now = Date.now(); let n = 0;
+  if (sched && isToday()) sched.stops.forEach((s, i) => { const t = plan.tasks[i]; if (s && t && t.id === s.task.id && !t.done && s.arrive <= now) { t.done = true; t.doneAt = s.arrive; n++; } });
+  plan.startFrom = 'here'; plan.hereLoc = { lat: p.lat, lng: p.lng, at: now };
+  plan.readyAt = hm(Math.ceil(now / 6e4) * 6e4);
+  savePlan(); renderDayInputs(); fittedOnce = false;
+  await compute(true);
+  toast(`📡 حسبت باقي يومك من مكانك الحين${n ? ` — علّمت ${n} ${n === 1 ? 'مهمة' : 'مهام'} كخلصت` : ''}`, false, 6000);
+}
+async function setStartFrom(v) {
+  if (v === 'here') { const p = await hereNow(); if (!p) { renderDayInputs(); return; } plan.startFrom = 'here'; plan.hereLoc = { lat: p.lat, lng: p.lng, at: Date.now() }; }
+  else plan.startFrom = 'home';
+  savePlan(); renderDayInputs(); fittedOnce = false; recompute();
+}
+
+/* ───────────────────────── 2) Shortest order ───────────────────────── */
+let prevOrder = null;
+function nearestOrder(origin, pts) {
+  const left = pts.map((p, i) => ({ p, i })); let cur = origin; const out = [];
+  while (left.length) { left.sort((x, y) => haversine(cur, x.p) - haversine(cur, y.p)); const n = left.shift(); out.push(n.i); cur = n.p; }
+  return out;
+}
+const isPerm = (ord, n) => Array.isArray(ord) && ord.length === n && new Set(ord).size === n && ord.every(k => k >= 0 && k < n);
+async function optimizeOrder(origin, dest, pts) {
+  const drive = settings.travelMode === 'DRIVE', dep = new Date(Date.now() + 120000);
+  const errs = [];
+  try {
+    const lib = await google.maps.importLibrary('routes');
+    for (const pref of drive ? ['TRAFFIC_AWARE', null] : [null]) {
+      try {
+        const req = { origin: { lat: origin.lat, lng: origin.lng }, destination: { lat: dest.lat, lng: dest.lng }, intermediates: pts.map(p => ({ location: { lat: p.lat, lng: p.lng } })), travelMode: drive ? 'DRIVING' : 'WALKING', optimizeWaypointOrder: true, fields: ['optimizedIntermediateWaypointIndices', 'durationMillis'] };
+        if (pref) Object.assign(req, { routingPreference: pref, departureTime: dep });
+        bump('routes');
+        const res = await lib.Route.computeRoutes(req);
+        const ord = res?.routes?.[0]?.optimizedIntermediateWaypointIndices;
+        if (isPerm(ord, pts.length)) return { idx: ord };
+        errs.push('JS: no order');
+      } catch (e) { errs.push('JS: ' + (e.message || e)); }
+    }
+  } catch (e) { errs.push('JS lib: ' + (e.message || e)); }
+  for (const pref of drive ? ['TRAFFIC_AWARE', null] : [null]) {
+    try {
+      const body = { origin: { location: { latLng: { latitude: origin.lat, longitude: origin.lng } } }, destination: { location: { latLng: { latitude: dest.lat, longitude: dest.lng } } }, intermediates: pts.map(p => ({ location: { latLng: { latitude: p.lat, longitude: p.lng } } })), travelMode: drive ? 'DRIVE' : 'WALK', optimizeWaypointOrder: true };
+      if (pref) Object.assign(body, { routingPreference: pref, departureTime: dep.toISOString() });
+      bump('routes');
+      const res = await fetch('https://routes.googleapis.com/directions/v2:computeRoutes', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Goog-Api-Key': settings.apiKey, 'X-Goog-FieldMask': 'routes.optimizedIntermediateWaypointIndex,routes.duration' }, body: JSON.stringify(body) });
+      const j = await res.json().catch(() => ({}));
+      const ord = j.routes?.[0]?.optimizedIntermediateWaypointIndex;
+      if (res.ok && isPerm(ord, pts.length)) return { idx: ord };
+      errs.push('REST: ' + (j.error?.message || res.status));
+    } catch (e) { errs.push('REST: ' + (e.message || e)); }
+  }
+  console.warn('optimize failed', errs);
+  return { idx: nearestOrder(origin, pts), approx: true };
+}
+async function optimizeDay() {
+  if (!googleReady) { toast('اربط مفتاح جوجل أول', true); return; }
+  const active = plan.tasks.map((t, i) => ({ t, i })).filter(x => !x.t.done);
+  const isFixed = t => t.arriveMode === 'at' && t.arriveAt;
+  if (active.filter(x => !isFixed(x.t)).length < 2) { toast('تحتاج مهمتين مرنتين على الأقل (بدون موعد ثابت) عشان أرتبها'); return; }
+  const btn = $('#btnOptimize'); btn.disabled = true; btn.textContent = '⚡ أرتّب…';
+  try {
+    const beforeIds = plan.tasks.map(t => t.id);
+    const beforeDrive = sched ? sched.legs.reduce((s, L) => s + L.r.dur, 0) : null;
+    let anchor = plan.startFrom === 'here' && plan.hereLoc ? plan.hereLoc : settings.home;
+    const out = []; let run = [], approx = false;
+    const flush = async end => {
+      if (run.length >= 2) {
+        const dest = end || (plan.returnHome ? settings.home : anchor);
+        const r = await optimizeOrder(anchor, dest, run.map(x => x.t));
+        if (r.approx) approx = true;
+        r.idx.forEach(k => out.push(run[k]));
+      } else out.push(...run);
+      run = [];
+    };
+    for (const x of active) { if (isFixed(x.t)) { await flush(x.t); out.push(x); anchor = x.t; } else run.push(x); }
+    await flush(null);
+    const newTasks = [...plan.tasks.filter(t => t.done), ...out.map(x => x.t)];
+    if (newTasks.map(t => t.id).join() === beforeIds.join()) { toast('👌 ترتيبك الحالي هو الأقصر أصلاً'); return; }
+    prevOrder = beforeIds;
+    plan.tasks = newTasks; savePlan();
+    await compute(true);
+    const after = sched ? sched.legs.reduce((s, L) => s + L.r.dur, 0) : null;
+    const saved = beforeDrive != null && after != null ? beforeDrive - after : 0;
+    $('#btnUndoOrder').style.display = '';
+    toast(saved > 60 ? `⚡ رتّبتها — وفّرت ${D(saved)} طريق${approx ? ' (ترتيب تقريبي)' : ''}` : `⚡ رتّبتها${approx ? ' (ترتيب تقريبي حسب المسافة)' : ''}`, false, 6000);
+  } finally { btn.disabled = false; btn.textContent = '⚡ رتّب بأقصر طريق'; }
+}
+function undoOrder() {
+  if (!prevOrder) return;
+  const byId = Object.fromEntries(plan.tasks.map(t => [t.id, t]));
+  const restored = prevOrder.map(id => byId[id]).filter(Boolean);
+  plan.tasks.forEach(t => { if (!restored.includes(t)) restored.push(t); });
+  plan.tasks = restored; prevOrder = null; savePlan(); $('#btnUndoOrder').style.display = 'none'; recompute(); toast('↩︎ رجّعت الترتيب القديم');
+}
+
+/* ───────────────────────── 3) Opening hours ───────────────────────── */
+const hoursCache = LS.get('hours', {});
+const hoursPending = new Set();
+async function fetchHours(pid) {
+  const { Place } = await google.maps.importLibrary('places');
+  const p = new Place({ id: pid }); bump('places');
+  await p.fetchFields({ fields: ['regularOpeningHours', 'utcOffsetMinutes'] });
+  const per = p.regularOpeningHours?.periods;
+  return { periods: per?.length ? per.map(x => ({ o: [x.open.day, x.open.hour, x.open.minute || 0], c: x.close ? [x.close.day, x.close.hour, x.close.minute || 0] : null })) : null, off: p.utcOffsetMinutes ?? (-new Date().getTimezoneOffset()), at: Date.now() };
+}
+function ensureHours() {
+  if (!googleReady) return;
+  const ids = [...new Set(plan.tasks.filter(t => !t.done && t.placeId).map(t => t.placeId))];
+  ids.forEach(id => {
+    const c = hoursCache[id];
+    if ((c && Date.now() - c.at < 7 * 864e5) || hoursPending.has(id)) return;
+    hoursPending.add(id);
+    fetchHours(id).then(h => { hoursCache[id] = h; LS.set('hours', hoursCache); renderTimeline(); })
+      .catch(e => { console.warn('hours', e); hoursCache[id] = { periods: null, off: 0, at: Date.now() - 6 * 864e5 }; })
+      .finally(() => hoursPending.delete(id));
+  });
+}
+function hoursStatus(pid, arrive, leave) {
+  const h = hoursCache[pid]; if (!h || !h.periods) return null;
+  const W = 10080;
+  // same country as the device → use the device's own offset for that date (handles summer-time changes); otherwise Google's offset
+  const offAt = ms => { const dev = -new Date(ms).getTimezoneOffset(); return Math.abs(h.off - dev) <= 60 ? dev : h.off; };
+  const wk = ms => { const d = new Date(ms + offAt(ms) * 6e4); return d.getUTCDay() * 1440 + d.getUTCHours() * 60 + d.getUTCMinutes(); };
+  const per = h.periods.map(p => { const o = p.o[0] * 1440 + p.o[1] * 60 + p.o[2]; if (!p.c) return { o, c: o + W }; let c = p.c[0] * 1440 + p.c[1] * 60 + p.c[2]; if (c <= o) c += W; return { o, c }; });
+  const wa = wk(arrive);
+  const pa = per.find(p => (wa >= p.o && wa < p.c) || (wa + W >= p.o && wa + W < p.c));
+  if (!pa) {
+    let best = Infinity; per.forEach(p => { const d = ((p.o - wa) % W + W) % W; if (d < best) best = d; });
+    return { cls: 'bad', txt: `🔴 مسكّر وقت وصولك${isFinite(best) ? ` · يفتح ${T(arrive + best * 6e4)}` : ''}` };
+  }
+  if (pa.c - pa.o >= W) return { cls: 'ok', txt: '🟢 مفتوح 24 ساعة' };
+  const base = (wa >= pa.o && wa < pa.c) ? wa : wa + W;
+  const closeMs = arrive + (pa.c - base) * 6e4;
+  if (closeMs < leave) return { cls: 'warn', txt: `🟠 يسكّر ${T(closeMs)} قبل ما تخلص` };
+  return { cls: 'ok', txt: `🟢 مفتوح لين ${T(closeMs)}` };
+}
+
+/* ───────────────────────── 4) Best time to leave ───────────────────────── */
+async function bestTime(li) {
+  const L = sched?.legs[li]; if (!L) return;
+  const toName = L.toIdx >= 0 ? plan.tasks[L.toIdx]?.name : 'البيت';
+  const fromName = L.fromIdx >= 0 ? plan.tasks[L.fromIdx]?.name : (sched.start?.kind === 'here' ? 'مكانك' : 'البيت');
+  $('#bestTitle').textContent = `⏱️ أحسن وقت تطلع إلى ${toName}`;
+  $('#bestLead').textContent = `من ${fromName} · أقارن الزحمة لو طلعت أبدر أو أتأخر عن وقتك (${T(L.depart)})`;
+  $('#bestBody').innerHTML = `<div class="hint">أحسب…</div>`;
+  $('#bestModal').classList.add('open');
+  const now = Date.now(), rows = [];
+  for (const o of [-45, -30, -15, 0, 15, 30, 45]) {
+    const dep = L.depart + o * 6e4;
+    if (dep < now - 6e4) continue;
+    const r = await getLeg(L.from, L.to, dep);
+    rows.push({ o, dep, dur: r.dur, est: r.est });
+  }
+  if (!rows.length) { $('#bestBody').innerHTML = `<div class="hint">وقت هذا المشوار عدّى.</div>`; return; }
+  const max = Math.max(...rows.map(r => r.dur)), best = rows.reduce((a, b) => b.dur < a.dur ? b : a);
+  const cur = rows.find(r => r.o === 0) || rows[0];
+  const canApply = li === 0 && L.toIdx >= 0 && !(plan.tasks[L.toIdx]?.arriveMode === 'at' && plan.tasks[L.toIdx]?.arriveAt);
+  const color = r => r.dur <= best.dur * 1.05 ? 'var(--ok)' : r.dur >= max * 0.95 ? 'var(--bad)' : 'var(--warn)';
+  const saving = cur.dur - best.dur;
+  $('#bestBody').innerHTML = `<div class="note" style="margin-bottom:10px">${saving > 120 ? `✅ أحسن وقت: تطلع <b>${T(best.dep)}</b> والطريق <b>${D(best.dur)}</b> — توفر <b>${D(saving)}</b> عن وقتك الحالي.` : `👌 وقتك الحالي (${T(cur.dep)}) من أحسن الأوقات — الفرق بسيط.`}</div>` +
+    rows.map(r => `<div class="bt-row ${r === best ? 'best' : ''} ${r.o === 0 ? 'cur' : ''}"><span class="num" style="direction:rtl">${T(r.dep)}${r.o === 0 ? ' ⬅︎' : ''}</span><span class="bt-bar"><i style="width:${(r.dur / max * 100).toFixed(0)}%;background:${color(r)}"></i></span><span>${D(r.dur)}${canApply && r.o !== 0 ? ` <button data-apply="${r.dep}">اعتمد</button>` : ''}</span></div>`).join('') +
+    (L.toIdx >= 0 && plan.tasks[L.toIdx]?.arriveMode === 'at' ? `<p class="hint" style="margin-top:10px">موعدك هناك ثابت — لو طلعت بدري بتوصل قبل الموعد وتنتظر.</p>` : '');
+}
+
+/* ───────────────────────── 6) Day templates ───────────────────────── */
+let templates = LS.get('templates', []);
+const saveTemplates = () => LS.set('templates', templates);
+const DAYS = ['أحد', 'اثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة', 'سبت'];
+let tplDaysSel = new Set();
+function applyTemplate(tp, auto = false) {
+  plan.tasks = tp.tasks.map(t => ({ ...t, id: uid(), todos: (t.todos || []).map(x => ({ id: uid(), text: x.text, done: false })) }));
+  if (tp.readyAt) plan.readyAt = tp.readyAt;
+  plan.returnHome = tp.returnHome !== false; plan.startFrom = 'home'; plan.tplApplied = tp.id;
+  savePlan(); sched = null; fittedOnce = false;
+  if (!auto) { renderDayInputs(); renderAll(); recompute(); }
+  toast(auto ? `📋 حطيت لك «${tp.name}» تلقائياً لأنه يوم ${DAYS[new Date(atTime(planDate, '12:00')).getDay()]}` : `📋 حطيت «${tp.name}» في يومك`, false, 6000);
+}
+function autoTemplate() {
+  if (plan.tasks.length || plan.tplApplied) return;
+  const wd = new Date(atTime(planDate, '12:00')).getDay();
+  const tp = templates.find(t => (t.days || []).includes(wd));
+  if (tp) applyTemplate(tp, true);
+}
+function renderTpl() {
+  $('#tplDays').innerHTML = DAYS.map((d, i) => `<button type="button" class="${tplDaysSel.has(i) ? 'on' : ''}" data-nd="${i}">${d}</button>`).join('');
+  $('#tplList').innerHTML = templates.length ? templates.map(tp => `<div class="tpl-row"><div class="row"><b class="grow">${esc(tp.name)}</b><button class="btn sm primary" data-tapply="${tp.id}">حطه في يومي</button><button class="btn sm danger" data-tdel="${tp.id}">🗑</button></div><div class="hint">${tp.tasks.map(t => `${t.emoji} ${esc(t.name)}`).join(' ← ')}</div><div class="days">${DAYS.map((d, i) => `<button type="button" class="${(tp.days || []).includes(i) ? 'on' : ''}" data-tday="${tp.id}:${i}">${d}</button>`).join('')}</div></div>`).join('')
+    : `<div class="empty"><span class="e">📋</span>ما عندك أيام محفوظة. رتّب يومك وبعدين احفظه تحت.</div>`;
+}
+function saveTemplateFromDay() {
+  const name = $('#tplName').value.trim() || 'يومي';
+  const act = plan.tasks;
+  if (!act.length) { toast('ضيف مهام ليومك أول عشان تحفظه', true); return; }
+  templates.push({ id: uid(), name, days: [...tplDaysSel], readyAt: plan.readyAt || '', returnHome: plan.returnHome, tasks: act.map(t => ({ name: t.name, emoji: t.emoji, lat: t.lat, lng: t.lng, address: t.address || '', placeId: t.placeId || null, placeRef: t.placeRef || null, stayMin: t.stayMin, parkMin: t.parkMin, arriveMode: t.arriveMode, arriveAt: t.arriveAt, todos: (t.todos || []).map(x => ({ text: x.text })) })) });
+  saveTemplates(); $('#tplName').value = ''; tplDaysSel = new Set(); renderTpl(); toast(`💾 انحفظ «${name}»`);
+}
+
+/* ───────────────────────── 10) Weekly report ───────────────────────── */
+function saveStats() {
+  if (!sched) return;
+  const prev = LS.get('stats.' + planDate, null);
+  const prevStops = Object.fromEntries((prev?.stops || []).map(s => [s.id, s]));
+  const stops = [];
+  plan.tasks.forEach((t, i) => {
+    const s = sched.stops[i];
+    const a = s ? s.arrive : (t.doneAt || prevStops[t.id]?.a);
+    if (!a) return;
+    stops.push({ id: t.id, n: t.name, e: t.emoji, a, stay: t.stayMin || 0, td: (t.todos || []).length, tdd: (t.todos || []).filter(x => x.done).length });
+  });
+  const drive = sched.legs.reduce((s, L) => s + L.r.dur, 0) + (prev && plan.startFrom === 'here' ? (prev.driveDone || 0) : 0);
+  LS.set('stats.' + planDate, {
+    drive, delay: sched.legs.reduce((s, L) => s + (L.r.est ? 0 : Math.max(0, L.r.dur - (L.r.staticDur || L.r.dur))), 0),
+    dist: sched.legs.reduce((s, L) => s + L.r.dist, 0), stops, at: Date.now(),
+    driveDone: sched.legs.filter(L => L.arrive <= Date.now()).reduce((s, L) => s + L.r.dur, 0),
+  });
+}
+function renderReport() {
+  const days = [];
+  for (let k = 6; k >= 0; k--) { const d = new Date(); d.setDate(d.getDate() - k); const ds = todayStr(d); days.push({ ds, d, st: LS.get('stats.' + ds, null), pl: LS.get('plan.' + ds, null) }); }
+  const now = Date.now();
+  let drive = 0, delay = 0, dist = 0, visits = 0, gym = 0, td = 0, tdd = 0; const byPlace = {};
+  days.forEach(x => {
+    if (!x.st) return;
+    drive += x.st.drive || 0; delay += x.st.delay || 0; dist += x.st.dist || 0;
+    (x.st.stops || []).filter(s => s.a <= now).forEach(s => { visits++; if (s.e === '🏋️' || /جيم|gym|نادي/i.test(s.n)) gym++; td += s.td || 0; tdd += s.tdd || 0; const k = `${s.e} ${s.n}`; byPlace[k] = (byPlace[k] || 0) + 1; });
+  });
+  const maxD = Math.max(1, ...days.map(x => x.st?.drive || 0));
+  const top = Object.entries(byPlace).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const dayName = d => new Intl.DateTimeFormat('ar-EG-u-nu-latn', { weekday: 'short' }).format(d);
+  $('#reportBody').innerHTML = !days.some(x => x.st) ? `<div class="empty"><span class="e">📊</span>ما فيه بيانات للحين. التقرير يتعبى لحاله كل يوم تستخدم فيه الخريطة.</div>` : `
+    <div class="rep-grid">
+      <div class="stat"><div class="k">🚗 وقتك في الطريق</div><div class="v">${D(drive)}</div></div>
+      <div class="stat"><div class="k">🔴 ضاع في الزحمة</div><div class="v">${D(delay)}</div></div>
+      <div class="stat"><div class="k">🏋️ مرات الجيم</div><div class="v">${gym}</div></div>
+      <div class="stat"><div class="k">📍 أماكن رحتها</div><div class="v">${visits}</div></div>
+      <div class="stat"><div class="k">🛣️ المسافة</div><div class="v">${KM(dist)}</div></div>
+      <div class="stat"><div class="k">📝 مهام خلصتها</div><div class="v">${tdd}/${td}</div></div>
+    </div>
+    <div class="mini-title">وقت الطريق كل يوم <span class="hint">(الأحمر = تأخير الزحمة)</span></div>
+    <div class="rep-bars">${days.map(x => { const dr = x.st?.drive || 0, dl = Math.min(dr, x.st?.delay || 0); const hTot = dr / maxD * 100; return `<div class="b" title="${D(dr)}"><span>${dr ? Math.round(dr / 60) : ''}</span><div style="width:100%;max-width:34px;height:${hTot.toFixed(0)}%;display:flex;flex-direction:column;justify-content:flex-end">${dl ? `<i class="lost" style="height:${(dl / Math.max(dr, 1) * 100).toFixed(0)}%;border-radius:6px 6px 0 0"></i>` : ''}<i style="flex:1;${dl ? 'border-radius:0 0 2px 2px' : ''}"></i></div></div>`; }).join('')}</div>
+    <div class="rep-days">${days.map(x => `<span>${x.ds === todayStr() ? 'اليوم' : dayName(x.d)}</span>`).join('')}</div>
+    ${top.length ? `<div class="mini-title" style="margin-top:14px">أكثر أماكن رحتها</div><div class="rep-list">${top.map(([k, v]) => `<div><span>${esc(k)}</span><b>${v}×</b></div>`).join('')}</div>` : ''}
+    ${delay > 600 ? `<p class="note" style="margin-top:12px">💡 الزحمة أكلت منك ${D(delay)} هالأسبوع. جرّب زر «⏱️ أحسن وقت» تحت كل مشوار.</p>` : ''}`;
+}
+
 /* ───────────────────────── Diagnostics ───────────────────────── */
 function showDiag(title, rows) {
   $('#diagTitle').textContent = title;
@@ -1277,6 +1624,7 @@ async function runDiagnostics() {
 /* ───────────────────────── Modals: setup & settings ───────────────────────── */
 function openSetup() { $('#keyInput').value = settings.apiKey || ''; $('#mapIdInput').value = settings.mapId || ''; $('#setupModal').classList.add('open'); }
 function openSettings() {
+  $('#setParking').checked = settings.parking !== false;
   $('#setKey').value = settings.apiKey; $('#setMapId').value = settings.mapId; $('#setRefresh').value = String(settings.refreshMin); $('#setView').value = settings.view;
   const u = LS.get('usage.' + todayStr().slice(0, 7), { routes: 0, places: 0 });
   $('#usageNote').innerHTML = `استخدامك هذا الشهر (من هذا المتصفح): <b class="num">${u.routes}</b> طلب مسار و <b class="num">${u.places}</b> بحث أماكن.<br>الحد المجاني الشهري تقريباً 5,000 لكل واحد منهم. المسارات تنحفظ مؤقتاً عشان ما تنطلب كثير.`;
@@ -1315,8 +1663,9 @@ async function runTour() {
   if (!view?.map) return;
   if (tourToken) { tourToken.cancel = true; view.stopFly = true; return; }
   const pts = [];
-  if (settings.home) pts.push({ lat: settings.home.lat, lng: settings.home.lng });
-  plan.tasks.forEach(t => pts.push({ lat: t.lat, lng: t.lng }));
+  const o = sched?.start || settings.home;
+  if (o) pts.push({ lat: o.lat, lng: o.lng });
+  plan.tasks.filter(t => !t.done).forEach(t => pts.push({ lat: t.lat, lng: t.lng }));
   if (plan.returnHome && settings.home && plan.tasks.length) pts.push({ lat: settings.home.lat, lng: settings.home.lng });
   if (pts.length < 2) { toast('ضيف مهمة على الأقل عشان أسوي جولة'); return; }
   tourToken = { cancel: false }; $('#btnTour').classList.add('on');
@@ -1332,7 +1681,7 @@ function tickClock() {
 let lastDay = todayStr();
 function tickPlan() {
   const td = todayStr();
-  if (td !== lastDay) { if (planDate === lastDay) { planDate = td; plan = loadPlan(planDate); renderDayInputs(); recompute(); } lastDay = td; }
+  if (td !== lastDay) { if (planDate === lastDay) { planDate = td; plan = loadPlan(planDate); autoTemplate(); renderDayInputs(); recompute(); } lastDay = td; }
   renderStatus(); renderTimeline(); renderSummary(); drawMap(); checkArrival();
   if (settings.refreshMin > 0 && googleReady && isToday() && sched && document.visibilityState === 'visible' && Date.now() - lastCompute > settings.refreshMin * 6e4 && Date.now() < sched.end) compute();
 }
@@ -1353,13 +1702,17 @@ function wire() {
   $('#homeGps').onclick = async () => { try { const p = await getGps(); setHome({ ...p, name: 'البيت' }); view?.focus?.(p); } catch { toast('ما قدرت أوصل لموقعك، اسمح للمتصفح بالموقع أو حدده من الخريطة', true); } };
   $('#pickCancel').onclick = () => { endPick(); $('#panel').classList.remove('collapsed'); };
 
-  $('#planDate').onchange = e => { planDate = e.target.value || todayStr(); plan = loadPlan(planDate); sched = null; renderDayInputs(); renderAll(); recompute(); fittedOnce = false; };
+  $('#planDate').onchange = e => { planDate = e.target.value || todayStr(); plan = loadPlan(planDate); sched = null; autoTemplate(); renderDayInputs(); renderAll(); recompute(); fittedOnce = false; };
   $('#readyAt').onchange = e => { plan.readyAt = e.target.value; savePlan(); recompute(); };
   $('#returnHome').onchange = e => { plan.returnHome = e.target.checked; savePlan(); recompute(); };
   $('#travelMode').onchange = e => { settings.travelMode = e.target.value; saveSettings(); recompute(); };
   $('#refreshBtn').onclick = () => { compute(true); toast('أحدّث الزحمة…'); };
 
   $('#timeline').onclick = e => {
+    const ud = e.target.closest('[data-undone]');
+    if (ud) { const t = plan.tasks[+ud.dataset.undone]; if (t) { t.done = false; savePlan(); recompute(); toast(`رجّعت ${t.name} للمخطط`); } return; }
+    const bt = e.target.closest('[data-best]');
+    if (bt) { bestTime(+bt.dataset.best); return; }
     const le = e.target.closest('[data-legerr]');
     if (le) { const L = sched?.legs[+le.dataset.legerr]; showDiag('ليش الطريق خط مستقيم؟', [['السبب من جوجل', false, L?.r?.error || routeErrors.join('\n') || 'ما فيه تفاصيل — جرّب ↻ تحديث']]); return; }
     const tdo = e.target.closest('[data-todo]');
@@ -1379,6 +1732,7 @@ function wire() {
   // task modal
   $('#tmEmojis').onclick = e => { const b = e.target.closest('[data-e]'); if (!b) return; editing.emoji = b.dataset.e; $('#tmEmoji').textContent = editing.emoji; document.querySelectorAll('#tmEmojis button').forEach(x => x.classList.toggle('on', x === b)); };
   $('#tmStay').onclick = e => { const b = e.target.closest('[data-m]'); if (!b) return; editing.stayMin = +b.dataset.m; $('#tmStayCustom').value = ''; document.querySelectorAll('#tmStay .chip').forEach(x => x.classList.toggle('on', x === b)); };
+  $('#tmPark').onclick = e => { const b = e.target.closest('[data-pk]'); if (!b) return; editing.parkMin = +b.dataset.pk; renderTmPark(); };
   $('#tmStayCustom').oninput = () => document.querySelectorAll('#tmStay .chip').forEach(x => x.classList.remove('on'));
   $('#tmArriveMode').onclick = e => { const b = e.target.closest('[data-v]'); if (b) setArriveMode(b.dataset.v); };
   $('#tmSave').onclick = saveTask;
@@ -1401,6 +1755,24 @@ function wire() {
   $('#arTodoForm').onsubmit = e => { e.preventDefault(); const t = plan.tasks[arriveIdx]; if (!t) return; t.todos = t.todos || []; if (addTodoFromInput($('#arTodoInput'), t.todos)) { savePlan(); renderArriveTodos(); renderTimeline(); } };
   $('#arOk').onclick = () => $('#arriveModal').classList.remove('open');
   $('#diagClose').onclick = () => $('#diagModal').classList.remove('open');
+  $('#startFrom').onclick = e => { const b = e.target.closest('[data-v]'); if (b) setStartFrom(b.dataset.v); };
+  $('#btnHere').onclick = replanFromHere;
+  $('#btnOptimize').onclick = optimizeDay;
+  $('#btnUndoOrder').onclick = undoOrder;
+  $('#bestClose').onclick = () => $('#bestModal').classList.remove('open');
+  $('#bestBody').onclick = e => { const b = e.target.closest('[data-apply]'); if (!b) return; plan.readyAt = hm(+b.dataset.apply); savePlan(); renderDayInputs(); $('#bestModal').classList.remove('open'); recompute(); toast(`✓ صار وقت طلعتك ${T(+b.dataset.apply)}`); };
+  $('#btnTpl').onclick = e => { e.stopPropagation(); renderTpl(); $('#tplModal').classList.add('open'); };
+  $('#tplClose').onclick = () => $('#tplModal').classList.remove('open');
+  $('#tplSave').onclick = saveTemplateFromDay;
+  $('#tplDays').onclick = e => { const b = e.target.closest('[data-nd]'); if (!b) return; const d = +b.dataset.nd; tplDaysSel.has(d) ? tplDaysSel.delete(d) : tplDaysSel.add(d); renderTpl(); };
+  $('#tplList').onclick = e => {
+    const ap = e.target.closest('[data-tapply]'), del = e.target.closest('[data-tdel]'), dy = e.target.closest('[data-tday]');
+    if (ap) { const tp = templates.find(t => t.id === ap.dataset.tapply); $('#tplModal').classList.remove('open'); applyTemplate(tp); }
+    if (del) { templates = templates.filter(t => t.id !== del.dataset.tdel); saveTemplates(); renderTpl(); }
+    if (dy) { const [id, d] = dy.dataset.tday.split(':'); const tp = templates.find(t => t.id === id); const n = +d; tp.days = tp.days || []; tp.days = tp.days.includes(n) ? tp.days.filter(x => x !== n) : [...tp.days, n]; saveTemplates(); renderTpl(); }
+  };
+  $('#btnReport').onclick = e => { e.stopPropagation(); renderReport(); $('#reportModal').classList.add('open'); };
+  $('#reportClose').onclick = () => $('#reportModal').classList.remove('open');
   $('#setDiag').onclick = () => { $('#settingsModal').classList.remove('open'); runDiagnostics(); };
   $('#tmCancel').onclick = closeTask;
   $('#tmDelete').onclick = () => {
@@ -1415,6 +1787,7 @@ function wire() {
   $('#setClose').onclick = () => $('#settingsModal').classList.remove('open');
   $('#setSave').onclick = async () => {
     settings.refreshMin = +$('#setRefresh').value;
+    const pk = $('#setParking').checked; if (pk !== (settings.parking !== false)) { settings.parking = pk; recompute(); }
     const newView = $('#setView').value; const viewChanged = newView !== settings.view; settings.view = newView; saveSettings();
     $('#settingsModal').classList.remove('open');
     await applyKey($('#setKey').value.trim(), $('#setMapId').value.trim());
@@ -1445,7 +1818,7 @@ async function startGoogle() {
 }
 
 function init() {
-  wire(); renderHome(); renderDayInputs(); renderSaved(); tickClock(); renderAll();
+  wire(); autoTemplate(); renderHome(); renderDayInputs(); renderSaved(); tickClock(); renderAll();
   setInterval(tickClock, 1000);
   setInterval(tickPlan, 20000);
   if (!settings.apiKey) {
