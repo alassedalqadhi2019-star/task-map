@@ -225,7 +225,7 @@ select.input option{background:var(--panel-solid)}
 /* Modals */
 .modal-bg{position:fixed;inset:0;background:rgba(3,6,12,.55);backdrop-filter:blur(4px);z-index:50;display:none;align-items:center;justify-content:center;padding:16px}
 .modal-bg.open{display:flex}
-#taskModal{z-index:55}#arriveModal{z-index:58}#diagModal{z-index:59}#bestModal{z-index:57}
+#taskModal{z-index:55}#arriveModal{z-index:58}#diagModal{z-index:59}#bestModal{z-index:57}#leaveModal{z-index:58}
 .diag-row{padding:8px 0;border-bottom:1px solid var(--line);font-size:13.5px}
 .diag-row pre{white-space:pre-wrap;word-break:break-word;direction:ltr;text-align:left;font-size:11.5px;color:var(--muted);margin:6px 0 0;font-family:ui-monospace,Menlo,monospace}
 .modal{width:min(520px,100%);max-height:calc(100vh - 32px);overflow:auto;background:var(--panel-solid);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:20px}
@@ -264,6 +264,11 @@ code,.code{direction:ltr;unicode-bidi:isolate;background:var(--card-hi);border-r
 .pin .foot{width:10px;height:10px;border-radius:50%;background:#4f8cff;border:2px solid #fff;margin-top:-2px}
 .pin.home .b{border-color:#22c55e}.pin.home .stem,.pin.home .foot{background:#22c55e}
 .pin.done{opacity:.55}
+.pin.car .b{border-color:#f59e0b}.pin.car .stem,.pin.car .foot{background:#f59e0b}
+.due{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:var(--warn-soft);border:1px solid rgba(245,158,11,.35);margin-bottom:8px;font-size:13.5px}
+.due .e{font-size:22px}
+.due .grow b{display:block}
+.leave-head .ico{background:var(--accent-soft)!important}
 .pin.now .b{border-color:#f59e0b;box-shadow:0 0 0 5px rgba(245,158,11,.25),0 6px 18px rgba(0,0,0,.45)}
 .pin.now .n,.pin.now .stem,.pin.now .foot{background:#f59e0b}
 .me{width:18px;height:18px;border-radius:50%;background:#4f8cff;border:3px solid #fff;box-shadow:0 0 0 6px rgba(79,140,255,.3),0 2px 8px rgba(0,0,0,.5)}
@@ -298,6 +303,7 @@ code,.code{direction:ltr;unicode-bidi:isolate;background:var(--card-hi);border-r
     <button class="iconbtn" id="btn3d" title="وضع ثلاثي الأبعاد الواقعي"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 2 3 7v10l9 5 9-5V7z"/><path d="M3 7l9 5 9-5M12 12v10"/></svg><span id="btn3dLbl">3D واقعي</span></button>
     <button class="iconbtn" id="btnTour" title="جولة على مسار اليوم"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg><span>جولة</span></button>
     <button class="iconbtn" id="btnFit" title="اعرض اليوم كامل"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+    <button class="iconbtn" id="btnCar" title="مكان السيارة">🅿️</button>
     <button class="iconbtn" id="btnGps" title="تتبع موقعي الحقيقي"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button>
     <button class="iconbtn" id="btnSettings" title="الإعدادات"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
   </div>
@@ -336,6 +342,10 @@ code,.code{direction:ltr;unicode-bidi:isolate;background:var(--card-hi);border-r
     <div class="section" id="secAdd">
       <div class="section-title">ضيف مهمة</div>
       <div class="card">
+        <form class="search" id="quickForm" autocomplete="off" style="margin:0 0 12px">
+          <input class="input" id="quickInput" placeholder="⚡ اكتب بسرعة: حلاق 5 العصر ساعة">
+          <button class="go" type="submit" aria-label="ضيف">＋</button>
+        </form>
         <div class="mini-title"><span>⭐ أماكني</span><span class="grow"></span><button class="linkbtn" id="managePlaces">إدارة الأماكن</button></div>
         <div class="chips" id="savedChips"></div>
         <div class="divider"></div>
@@ -352,10 +362,12 @@ code,.code{direction:ltr;unicode-bidi:isolate;background:var(--card-hi);border-r
 
     <div class="section" id="secPlan">
       <div class="section-title"><span class="grow">مخطط اليوم</span><button class="btn sm ghost" id="refreshBtn" title="حدّث الزحمة الآن">↻ تحديث</button><a class="btn sm ghost" id="openAllGmaps" target="_blank" rel="noopener" style="text-decoration:none">افتح في جوجل ماب ↗</a></div>
+      <div id="dueBox"></div>
       <div class="plan-actions" id="planActions">
         <button class="btn sm" id="btnHere" title="احسب باقي اليوم من مكانك الحين">📡 كمّل من مكاني الحين</button>
         <button class="btn sm" id="btnOptimize" title="رتّب المشاوير المرنة بأقصر طريق">⚡ رتّب بأقصر طريق</button>
         <button class="btn sm ghost" id="btnUndoOrder" style="display:none">↩︎ رجّع الترتيب</button>
+        <button class="btn sm" id="btnIcs" title="أضف يومك لتقويم الجوال مع تنبيهات">📅 أضف للتقويم</button>
       </div>
       <div id="timeline"></div>
     </div>
@@ -420,6 +432,11 @@ code,.code{direction:ltr;unicode-bidi:isolate;background:var(--card-hi);border-r
     <div class="field" style="margin:16px 0 0">📝 المهام اللي تسويها هناك <span class="hint" id="tmTodoHint">(تطلع لك أول ما توصل)</span></div>
     <div class="todos" id="tmTodos"></div>
     <form class="todo-add" id="tmTodoForm" autocomplete="off"><input class="input" id="tmTodoInput" placeholder="مثلاً: حليب، بيض، خبز… (Enter للإضافة)"><button class="btn sm" type="submit">+ ضيف</button></form>
+    <div id="tmRepeatBox" style="display:none">
+      <div class="field" style="margin:16px 0 8px">🔁 أروحه كل كم يوم؟ <span class="hint">(يذكرك لما يجي وقته)</span></div>
+      <div class="chips" id="tmRepeat"></div>
+      <label class="field" style="margin-top:10px">آخر مرة رحته<input type="date" class="input" id="tmLastVisit" style="width:auto"></label>
+    </div>
     <div id="tmTaskOnly">
     <div class="field" style="margin:16px 0 8px">🕑 متى تبي توصل؟</div>
     <div class="row wrap"><div class="seg" id="tmArriveMode"><button data-v="after" class="on">مباشرة بعد اللي قبله</button><button data-v="at">عند ساعة محددة</button></div><input type="time" class="input" id="tmArriveAt" style="width:130px;display:none"></div>
@@ -481,6 +498,25 @@ code,.code{direction:ltr;unicode-bidi:isolate;background:var(--card-hi);border-r
     <h2>📊 تقرير آخر 7 أيام</h2>
     <div id="reportBody"></div>
     <div class="actions"><button class="btn ghost" id="reportClose">إغلاق</button></div>
+  </div>
+</div>
+
+<!-- Leave now -->
+<div class="modal-bg" id="leaveModal">
+  <div class="modal arrive-modal">
+    <div class="arrive-head leave-head"><div class="ico" id="lvEmoji">🚗</div><div><h2 id="lvTitle">اطلع الحين</h2><div class="hint" id="lvSub"></div></div></div>
+    <div class="note" id="lvNote"></div>
+    <div class="actions"><a class="btn primary" id="lvNav" target="_blank" rel="noopener" style="text-decoration:none">🧭 ابدأ الملاحة</a><button class="btn ghost" id="lvOk">تمام</button></div>
+  </div>
+</div>
+
+<!-- Car -->
+<div class="modal-bg" id="carModal">
+  <div class="modal">
+    <h2>🅿️ سيارتك</h2>
+    <p class="lead" id="carInfo"></p>
+    <label class="field">ملاحظة (اختياري)<input class="input" id="carNote" placeholder="مثلاً: الدور -2، عمود B7"></label>
+    <div class="actions"><a class="btn primary" id="carGo" target="_blank" rel="noopener" style="text-decoration:none">🧭 خذني لسيارتي</a><button class="btn" id="carShow">📍 وريني على الخريطة</button><button class="btn" id="carHere">📌 صفّيت هنا الحين</button><button class="btn danger sm" id="carDel" style="margin-right:auto">امسح</button></div>
   </div>
 </div>
 
@@ -611,8 +647,8 @@ async function loadGoogle() {
 /* ───────────────────────── Map views ───────────────────────── */
 function pinEl(stop) {
   const el = document.createElement('div');
-  el.className = `pin ${stop.kind === 'home' ? 'home' : ''} ${stop.state || ''}`;
-  const n = stop.kind === 'home' ? '' : `<span class="n">${stop.idx + 1}</span>`;
+  el.className = `pin ${stop.kind === 'home' ? 'home' : stop.kind === 'car' ? 'car' : ''} ${stop.state || ''}`;
+  const n = stop.kind !== 'task' ? '' : `<span class="n">${stop.idx + 1}</span>`;
   el.innerHTML = `<div class="b">${n}<span class="e">${stop.emoji}</span><span>${esc(stop.name)}</span>${stop.time ? `<span class="tm">${esc(stop.time)}</span>` : ''}${stop.left ? `<span class="tm">📝${stop.left}</span>` : ''}</div><div class="stem"></div><div class="foot"></div>`;
   return el;
 }
@@ -955,7 +991,7 @@ async function compute(force = false) {
     sched = { readyMs, legs, stops, start, homeArrive, end: homeArrive ?? avail };
     lastCompute = Date.now();
     saveStats(); ensureHours();
-    renderAll(); checkArrival();
+    renderAll(); checkArrival(); markVisits(); checkLeave(); renderDue();
   } finally { if (gen === computeGen) $('#refreshBtn').disabled = false; }
 }
 let computeTimer;
@@ -1096,6 +1132,8 @@ function mapModel() {
     }
     for (const L of sched.legs) legs.push({ path: L.r.path, segs: L.r.segs || [], est: L.r.est, mode: settings.travelMode, state: today ? (now >= L.arrive ? 'done' : now >= L.depart ? 'now' : '') : '' });
   } else plan.tasks.forEach((t, i) => { if (!t.done) stops.push({ kind: 'task', idx: i, name: t.name, emoji: t.emoji, lat: t.lat, lng: t.lng }); });
+  const car = LS.get('car', null);
+  if (car) stops.push({ kind: 'car', name: 'سيارتك', emoji: '🚗', lat: car.lat, lng: car.lng, time: T(car.at) });
   return { stops, legs };
 }
 let lastModelSig = '', fittedOnce = false;
@@ -1220,6 +1258,8 @@ function openTask(task, isNew, mode = 'task') {
   editing = { todos: [], ...task, todos: (task.todos || []).map(x => ({ ...x })) }; editingNew = isNew; editMode = mode;
   const place = mode === 'place';
   $('#tmTaskOnly').style.display = place ? 'none' : '';
+  $('#tmRepeatBox').style.display = place ? '' : 'none';
+  if (place) { renderTmRepeat(); $('#tmLastVisit').value = editing.lastVisit || ''; }
   $('#tmTodoHint').textContent = place ? '(ثابتة — تنضاف كل ما تحط المكان في يومك)' : '(تطلع لك أول ما توصل)';
   $('#tmDelete').textContent = place ? 'احذف من أماكني' : 'حذف المهمة';
   const saved = !place && findPlace(editing);
@@ -1266,6 +1306,7 @@ function saveTask() {
   editing.name = $('#tmName').value.trim() || editing.name;
   addTodoFromInput($('#tmTodoInput'), editing.todos);
   if (editMode === 'place') {
+    editing.lastVisit = $('#tmLastVisit').value || editing.lastVisit || (editing.everyDays ? todayStr() : '');
     const p = { ...editing, todos: editing.todos.map(x => ({ id: x.id, text: x.text })) };
     const i = places.findIndex(x => x.id === p.id); if (i >= 0) places[i] = p; else places.push(p);
     savePlaces(); renderSaved(); renderPlacesList(); closeTask(); toast('انحفظ المكان ✓'); return;
@@ -1298,7 +1339,7 @@ function taskFromPlace(p) {
   return { id: uid(), name: p.name, emoji: p.emoji, lat: p.lat, lng: p.lng, address: p.address, placeId: p.placeId, placeRef: p.id, stayMin: p.stayMin || 60, arriveMode: 'after', arriveAt: '', todos: (p.todos || []).map(x => ({ id: uid(), text: x.text, done: false })) };
 }
 function renderPlacesList() {
-  $('#placeList').innerHTML = places.length ? places.map(p => `<div class="place-row"><div class="e">${p.emoji}</div><div class="grow"><div class="n">${esc(p.name)}</div><div class="s">⏱️ ${D((p.stayMin || 60) * 60)}${p.todos?.length ? ` · 📝 ${p.todos.map(x => esc(x.text)).slice(0, 3).join('، ')}${p.todos.length > 3 ? '…' : ''}` : ''}</div></div><button class="btn sm" data-padd="${p.id}">+ لليوم</button><button class="btn sm ghost" data-pedit="${p.id}">✎</button></div>`).join('')
+  $('#placeList').innerHTML = places.length ? places.map(p => `<div class="place-row"><div class="e">${p.emoji}</div><div class="grow"><div class="n">${esc(p.name)}</div><div class="s">${p.everyDays ? `🔁 كل ${p.everyDays} يوم · ` : ''}⏱️ ${D((p.stayMin || 60) * 60)}${p.todos?.length ? ` · 📝 ${p.todos.map(x => esc(x.text)).slice(0, 3).join('، ')}${p.todos.length > 3 ? '…' : ''}` : ''}</div></div><button class="btn sm" data-padd="${p.id}">+ لليوم</button><button class="btn sm ghost" data-pedit="${p.id}">✎</button></div>`).join('')
     : `<div class="empty"><span class="e">⭐</span>ما عندك أماكن محفوظة للحين.</div>`;
 }
 
@@ -1597,6 +1638,192 @@ function renderReport() {
     ${delay > 600 ? `<p class="note" style="margin-top:12px">💡 الزحمة أكلت منك ${D(delay)} هالأسبوع. جرّب زر «⏱️ أحسن وقت» تحت كل مشوار.</p>` : ''}`;
 }
 
+/* ───────────────────────── Recurring errands ───────────────────────── */
+const REPEATS = [0, 3, 7, 10, 14, 21, 30];
+function renderTmRepeat() {
+  const v = editing.everyDays || 0;
+  $('#tmRepeat').innerHTML = REPEATS.map(d => `<button type="button" class="chip ${d === v ? 'on' : ''}" data-rep="${d}">${d ? (d === 7 ? 'كل أسبوع' : d === 14 ? 'كل أسبوعين' : d === 30 ? 'كل شهر' : `كل ${d} ${d <= 10 ? 'أيام' : 'يوم'}`) : 'بدون'}</button>`).join('');
+}
+const daysBetween = (a, b) => Math.round((atTime(b, '12:00') - atTime(a, '12:00')) / 864e5);
+function markVisits() {
+  if (!sched || !isToday()) return;
+  const now = Date.now(), td = todayStr(); let dirty = false;
+  plan.tasks.forEach((t, i) => {
+    const s = sched.stops[i];
+    const visited = t.done || (s && s.arrive <= now);
+    if (!visited) return;
+    const p = places.find(x => (t.placeRef && x.id === t.placeRef) || (t.placeId && x.placeId === t.placeId));
+    if (p && p.lastVisit !== td && (!p.lastVisit || p.lastVisit < td)) { p.lastVisit = td; dirty = true; }
+  });
+  if (dirty) { savePlaces(); renderSaved(); }
+}
+function duePlaces() {
+  if (!isToday()) return [];
+  const td = todayStr();
+  return places.filter(p => p.everyDays && p.lastVisit && p.snooze !== td && !plan.tasks.some(t => t.placeRef === p.id || (p.placeId && t.placeId === p.placeId)))
+    .map(p => ({ p, since: daysBetween(p.lastVisit, td) })).filter(x => x.since >= x.p.everyDays).sort((a, b) => (b.since - b.p.everyDays) - (a.since - a.p.everyDays));
+}
+function renderDue() {
+  const box = $('#dueBox'); if (!box) return;
+  const due = duePlaces();
+  box.innerHTML = due.map(({ p, since }) => `<div class="due"><span class="e">${p.emoji}</span><div class="grow"><b>🔁 صار لك ${since} يوم ما رحت ${esc(p.name)}</b><span class="hint">تروحه عادة ${p.everyDays === 7 ? 'كل أسبوع' : `كل ${p.everyDays} يوم`}</span></div><button class="btn sm primary" data-dueadd="${p.id}">ضيفه لليوم</button><button class="btn sm ghost" data-duesnooze="${p.id}">بكرة</button></div>`).join('');
+}
+
+/* ───────────────────────── Leave-now alerts ───────────────────────── */
+const lastDeparts = {};
+function showLeave(L, title, note) {
+  const to = L.toIdx >= 0 ? plan.tasks[L.toIdx] : null;
+  $('#lvEmoji').textContent = to ? to.emoji : '🏠';
+  $('#lvTitle').textContent = title;
+  $('#lvSub').textContent = `إلى ${to ? to.name : 'البيت'} · الطريق ${D(L.r.dur)} · توصل ${T(L.arrive)}`;
+  const ti = trafficInfo(L.r);
+  $('#lvNote').innerHTML = note || (ti ? `حالة الطريق: <b>${ti.txt}</b>` : '');
+  $('#lvNav').href = navLink(L.from, L.to);
+  $('#leaveModal').classList.add('open'); beep();
+  const old = document.title; document.title = `🚗 ${title}`; setTimeout(() => document.title = old, 20000);
+}
+function checkLeave() {
+  if (!sched || !isToday() || $('#leaveModal').classList.contains('open') || $('#arriveModal').classList.contains('open')) return;
+  const now = Date.now(), alerted = LS.get('leave.' + planDate, {});
+  let shown = false;
+  sched.legs.forEach(L => {
+    if (shown) return;
+    const to = L.toIdx >= 0 ? plan.tasks[L.toIdx] : null;
+    const id = to ? to.id : 'home';
+    const s = to ? sched.stops[L.toIdx] : null;
+    // traffic got worse for a fixed appointment → leave earlier
+    const prev = lastDeparts[id];
+    lastDeparts[id] = L.depart;
+    if (s?.target && prev && L.depart < prev - 4 * 6e4 && L.depart > now && !alerted[id + ':early:' + Math.round(L.depart / 6e4)]) {
+      alerted[id + ':early:' + Math.round(L.depart / 6e4)] = true; LS.set('leave.' + planDate, alerted); shown = true;
+      showLeave(L, `⚠️ الزحمة زادت — اطلع ${T(L.depart)}`, `بدل ${T(prev)}، عشان توصل ${to.name} على موعدك ${T(s.target)}.`);
+      return;
+    }
+    if (!alerted[id] && L.depart - now <= 5 * 6e4 && L.depart - now > -5 * 6e4) {
+      alerted[id] = true; LS.set('leave.' + planDate, alerted); shown = true;
+      showLeave(L, L.depart - now > 60e3 ? `اطلع بعد ${D((L.depart - now) / 1000)}` : '🚗 اطلع الحين', s?.target ? `موعدك هناك ${T(s.target)}${s.late ? ` — <b style="color:var(--bad)">بتتأخر ${D(s.late)}</b>` : ' — بتوصل في الوقت 👍'}` : '');
+    }
+  });
+}
+
+/* ───────────────────────── Calendar (.ics) ───────────────────────── */
+const icsDate = ms => new Date(ms).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+const icsEsc = s => String(s).replace(/\\/g, '\\\\').replace(/\r?\n/g, '\\n').replace(/,/g, '\\,').replace(/;/g, '\;');
+const icsFold = line => { // fold at 73 bytes without splitting a character (RFC 5545)
+  const enc = new TextEncoder(), out = []; let cur = '', bytes = 0;
+  for (const ch of Array.from(line)) { const b = enc.encode(ch).length; if (bytes + b > 73) { out.push(cur); cur = ' '; bytes = 1; } cur += ch; bytes += b; }
+  out.push(cur); return out.join('\r\n');
+};
+function exportIcs() {
+  if (!sched) { toast('ما فيه مخطط لهذا اليوم', true); return; }
+  const L = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//TaskMap//AR', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH', 'X-WR-CALNAME:خريطة مهامي'];
+  const alarm = (min, text) => ['BEGIN:VALARM', 'ACTION:DISPLAY', `DESCRIPTION:${icsEsc(text)}`, `TRIGGER:${min ? `-PT${min}M` : 'PT0M'}`, 'END:VALARM'];
+  sched.legs.forEach(G => {
+    const to = G.toIdx >= 0 ? plan.tasks[G.toIdx] : null, name = to ? to.name : 'البيت', url = navLink(G.from, G.to);
+    L.push('BEGIN:VEVENT', `UID:tm-${planDate}-go-${to ? to.id : 'home'}@taskmap`, `DTSTAMP:${icsDate(Date.now())}`, `DTSTART:${icsDate(G.depart)}`, `DTEND:${icsDate(G.arrive)}`,
+      `SUMMARY:${icsEsc(`🚗 اطلع إلى ${name}`)}`, `DESCRIPTION:${icsEsc(`الطريق ${D(G.r.dur)} · ${KM(G.r.dist)}${G.park ? ` · باركنق ${Math.round(G.park / 60)} د` : ''}\n${url}`)}`, `URL:${url}`,
+      ...alarm(10, `باقي 10 د وتطلع إلى ${name}`), ...alarm(0, `اطلع الحين إلى ${name}`), 'END:VEVENT');
+  });
+  sched.stops.forEach(s => {
+    if (!s) return;
+    const t = s.task, todos = (t.todos || []).filter(x => !x.done).map(x => '• ' + x.text).join('\n');
+    L.push('BEGIN:VEVENT', `UID:tm-${planDate}-at-${t.id}@taskmap`, `DTSTAMP:${icsDate(Date.now())}`, `DTSTART:${icsDate(s.arrive)}`, `DTEND:${icsDate(s.leave)}`,
+      `SUMMARY:${icsEsc(`${t.emoji} ${t.name}`)}`, `LOCATION:${icsEsc(t.address || `${t.lat},${t.lng}`)}`, `GEO:${t.lat};${t.lng}`,
+      `DESCRIPTION:${icsEsc(todos ? `المهام هناك:\n${todos}` : 'خريطة مهامي')}`, ...(todos ? alarm(0, `وصلت ${t.name} — ${todos.replace(/\n/g, '، ')}`) : []), 'END:VEVENT');
+  });
+  L.push('END:VCALENDAR');
+  const blob = new Blob([L.map(icsFold).join('\r\n') + '\r\n'], { type: 'text/calendar;charset=utf-8' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `task-map-${planDate}.ics`;
+  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+  toast('📅 جهزت ملف التقويم — اضغط «أضف الكل» عشان تجيك التنبيهات', false, 7000);
+}
+
+/* ───────────────────────── Parked car ───────────────────────── */
+async function parkHere() {
+  const p = await hereNow(); if (!p) return;
+  LS.set('car', { lat: p.lat, lng: p.lng, at: Date.now(), note: '' });
+  lastModelSig = ''; drawMap(); $('#carModal').classList.remove('open');
+  toast('🅿️ حفظت مكان سيارتك');
+}
+function openCar() {
+  const car = LS.get('car', null);
+  if (!car) { parkHere(); return; }
+  const mins = Math.round((Date.now() - car.at) / 6e4);
+  const d = gpsPos ? ` · تبعد عنك ${KM(haversine(gpsPos, car))}` : '';
+  $('#carInfo').textContent = `صفّيتها الساعة ${T(car.at)} (من ${D(mins * 60)})${d}`;
+  $('#carNote').value = car.note || '';
+  const u = new URL('https://www.google.com/maps/dir/'); u.searchParams.set('api', '1'); u.searchParams.set('destination', `${car.lat},${car.lng}`); u.searchParams.set('travelmode', 'walking');
+  $('#carGo').href = u.toString();
+  $('#carModal').classList.add('open');
+}
+
+/* ───────────────────────── Quick add by typing ───────────────────────── */
+const normAr = s => String(s || '').replace(/[ًٌٍَُِّْـ]/g, '').replace(/[أإآ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي').toLowerCase().trim();
+function parseQuick(text, nowMs = Date.now()) {
+  let s = ' ' + String(text).replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[،,؛]/g, ' ').replace(/\s+/g, ' ') + ' ';
+  let stay = null, hour = null, min = 0, ampm = null;
+  const take = (re, fn) => { const m = s.match(re); if (!m) return false; fn(m); s = s.replace(m[0], ' '); return true; };
+  // duration
+  take(/\sساعتين\s*و\s*نص\s/, () => stay = 150) || take(/\sساع[ةه]\s*و\s*نص\s/, () => stay = 90) || take(/\sساع[ةه]\s*و\s*ربع\s/, () => stay = 75) ||
+    take(/\sساعتين\s/, () => stay = 120) || take(/\s(\d+(?:\.\d+)?)\s*(?:ساعات|ساع[ةه]|hours?|h)\s/i, m => stay = Math.round(+m[1] * 60)) ||
+    take(/\sنص\s*ساع[ةه]\s/, () => stay = 30) || take(/\sربع\s*ساع[ةه]\s/, () => stay = 15) ||
+    take(/\s(\d+)\s*(?:دقيق[ةه]|دقايق|دقائق|د|min|mins|m)\s/i, m => stay = +m[1]) || take(/\sساع[ةه]\s/, () => stay = 60);
+  // period of day
+  take(/\s(العصر|عصرا|المغرب|العشا|العشاء|الليل|بالليل|بليل|مساء|مساءا|مساءً|م|pm)\s/i, () => ampm = 'pm') ||
+    take(/\s(الصبح|الصباح|صباحا|صباحاً|الفجر|ص|am)\s/i, () => ampm = 'am') || take(/\s(الظهر|ظهرا|الضهر)\s/, () => ampm = 'noon');
+  s = s.replace(/\s(الساع[ةه]|ساع[ةه]|على|ع)\s(?=\d)/g, ' ');
+  // time
+  take(/\s(\d{1,2})[:.](\d{2})\s/, m => { hour = +m[1]; min = +m[2]; }) ||
+    take(/\s(\d{1,2})\s*(?:و\s*نص|ونص)\s/, m => { hour = +m[1]; min = 30; }) ||
+    take(/\s(\d{1,2})\s*(?:و\s*ربع|وربع)\s/, m => { hour = +m[1]; min = 15; }) ||
+    take(/\s(\d{1,2})\s*(?:الا|إلا)\s*ربع\s/, m => { hour = +m[1] - 1; min = 45; }) ||
+    take(/\s(\d{1,2})\s/, m => { hour = +m[1]; });
+  if (hour == null && ampm === 'noon') hour = 12;
+  let time = null;
+  if (hour != null && hour >= 0 && hour <= 23) {
+    let h = hour;
+    if (h < 12 && (ampm === 'pm' || (ampm === 'noon' && h <= 4))) h += 12;
+    else if (ampm === 'am' && h === 12) h = 0;
+    else if (!ampm && h >= 1 && h <= 11) {
+      const now = new Date(nowMs), cur = now.getHours() * 60 + now.getMinutes();
+      if (h <= 6) h += 12; else if (h * 60 + min < cur && h + 12 <= 23) h += 12;
+    }
+    time = `${z2(h)}:${z2(min)}`;
+  }
+  const filler = /\s(روح|اروح|أروح|بروح|ابا|أبا|ابي|أبي|ابغى|أبغى|ودي|لازم|الى|إلى|لل|ل|عند|في|بعدين|ثم|اليوم|بكره|بكرة|وقت|مدة|لمدة|اجلس|بجلس|و)\s/g;
+  let name = s; for (let k = 0; k < 3; k++) name = name.replace(filler, ' ');
+  name = name.replace(/\s+/g, ' ').trim();
+  return { name, time, stay };
+}
+async function quickAdd(text) {
+  const q = parseQuick(text);
+  if (!q.name) { toast('اكتب اسم المكان، مثلاً: حلاق 5 العصر ساعة', true); return; }
+  const n = normAr(q.name).replace(/^ال/, '');
+  let task = null;
+  const pl = places.find(x => normAr(x.name).replace(/^ال/, '') === n) || places.find(x => { const m = normAr(x.name).replace(/^ال/, ''); return m.includes(n) || n.includes(m); });
+  if (pl) task = taskFromPlace(pl);
+  else {
+    if (!googleReady) { toast('اربط مفتاح جوجل أول', true); return; }
+    const cat = QUICK.find(x => normAr(x.n).replace(/^ال/, '') === n || normAr(x.q).replace(/^ال/, '') === n);
+    $('#quickInput').disabled = true;
+    try {
+      const near = lastPoint();
+      const res = await searchPlaces(cat ? cat.q : q.name, near);
+      if (!res.length) { toast(`ما لقيت «${q.name}» — جرّب اسم ثاني`, true); return; }
+      if (cat && near) res.sort((a, b) => haversine(near, a) - haversine(near, b));
+      const r = res[0];
+      task = { id: uid(), name: r.name, address: r.address, placeId: r.placeId, lat: r.lat, lng: r.lng, emoji: cat?.e || guessEmoji(q.name + ' ' + r.name), stayMin: cat?.stay || 60, arriveMode: 'after', arriveAt: '', todos: [] };
+    } catch (e) { toast('البحث ما اشتغل', true); return; }
+    finally { $('#quickInput').disabled = false; }
+  }
+  if (q.stay) task.stayMin = q.stay;
+  if (q.time) { task.arriveMode = 'at'; task.arriveAt = q.time; }
+  $('#quickInput').value = '';
+  openTask(task, true);
+  view?.focus?.({ lat: task.lat, lng: task.lng });
+  toast(`فهمت: ${task.emoji} ${task.name}${q.time ? ` · توصل ${T(atTime(planDate, q.time))}` : ''}${q.stay ? ` · ${D(q.stay * 60)}` : ''} — راجع واضغط ضيف`, false, 6000);
+}
+
 /* ───────────────────────── Diagnostics ───────────────────────── */
 function showDiag(title, rows) {
   $('#diagTitle').textContent = title;
@@ -1682,8 +1909,11 @@ let lastDay = todayStr();
 function tickPlan() {
   const td = todayStr();
   if (td !== lastDay) { if (planDate === lastDay) { planDate = td; plan = loadPlan(planDate); autoTemplate(); renderDayInputs(); recompute(); } lastDay = td; }
-  renderStatus(); renderTimeline(); renderSummary(); drawMap(); checkArrival();
-  if (settings.refreshMin > 0 && googleReady && isToday() && sched && document.visibilityState === 'visible' && Date.now() - lastCompute > settings.refreshMin * 6e4 && Date.now() < sched.end) compute();
+  renderStatus(); renderTimeline(); renderSummary(); drawMap(); checkArrival(); markVisits(); checkLeave(); renderDue();
+  // refresh traffic more often when a departure is close
+  const nextDep = sched?.legs.find(L => L.depart > Date.now())?.depart;
+  const every = settings.refreshMin > 0 ? (nextDep && nextDep - Date.now() < 45 * 6e4 ? Math.min(5, settings.refreshMin) : settings.refreshMin) : 0;
+  if (every && googleReady && isToday() && sched && document.visibilityState === 'visible' && Date.now() - lastCompute > every * 6e4 && Date.now() < sched.end) compute();
 }
 
 /* ───────────────────────── Wiring ───────────────────────── */
@@ -1755,6 +1985,20 @@ function wire() {
   $('#arTodoForm').onsubmit = e => { e.preventDefault(); const t = plan.tasks[arriveIdx]; if (!t) return; t.todos = t.todos || []; if (addTodoFromInput($('#arTodoInput'), t.todos)) { savePlan(); renderArriveTodos(); renderTimeline(); } };
   $('#arOk').onclick = () => $('#arriveModal').classList.remove('open');
   $('#diagClose').onclick = () => $('#diagModal').classList.remove('open');
+  $('#tmRepeat').onclick = e => { const b = e.target.closest('[data-rep]'); if (!b) return; editing.everyDays = +b.dataset.rep || 0; if (editing.everyDays && !$('#tmLastVisit').value) $('#tmLastVisit').value = todayStr(); renderTmRepeat(); };
+  $('#dueBox').onclick = e => {
+    const ad = e.target.closest('[data-dueadd]'), sn = e.target.closest('[data-duesnooze]');
+    if (ad) { const p = places.find(x => x.id === ad.dataset.dueadd); if (p) openTask(taskFromPlace(p), true); }
+    if (sn) { const p = places.find(x => x.id === sn.dataset.duesnooze); if (p) { p.snooze = todayStr(); savePlaces(); renderDue(); } }
+  };
+  $('#lvOk').onclick = () => $('#leaveModal').classList.remove('open');
+  $('#btnIcs').onclick = exportIcs;
+  $('#btnCar').onclick = openCar;
+  $('#carHere').onclick = parkHere;
+  $('#carDel').onclick = () => { LS.del('car'); lastModelSig = ''; drawMap(); $('#carModal').classList.remove('open'); toast('انمسح مكان السيارة'); };
+  $('#carShow').onclick = () => { const c = LS.get('car', null); $('#carModal').classList.remove('open'); if (c) view?.focus?.(c); };
+  $('#carNote').onchange = () => { const c = LS.get('car', null); if (c) { c.note = $('#carNote').value; LS.set('car', c); } };
+  $('#quickForm').onsubmit = e => { e.preventDefault(); quickAdd($('#quickInput').value); };
   $('#startFrom').onclick = e => { const b = e.target.closest('[data-v]'); if (b) setStartFrom(b.dataset.v); };
   $('#btnHere').onclick = replanFromHere;
   $('#btnOptimize').onclick = optimizeDay;
@@ -1818,7 +2062,7 @@ async function startGoogle() {
 }
 
 function init() {
-  wire(); autoTemplate(); renderHome(); renderDayInputs(); renderSaved(); tickClock(); renderAll();
+  wire(); autoTemplate(); renderHome(); renderDayInputs(); renderSaved(); tickClock(); renderAll(); renderDue();
   setInterval(tickClock, 1000);
   setInterval(tickPlan, 20000);
   if (!settings.apiKey) {
@@ -1829,7 +2073,7 @@ function init() {
   recompute();
 }
 
-window.__tm = { get sched() { return sched; }, get plan() { return plan; }, get places() { return places; }, checkArrival, settings, compute, phaseAt, decodePolyline, D, T, legCache };
+window.__tm = { parseQuick,  get sched() { return sched; }, get plan() { return plan; }, get places() { return places; }, checkArrival, settings, compute, phaseAt, decodePolyline, D, T, legCache };
 init();
 })();
 </script>
