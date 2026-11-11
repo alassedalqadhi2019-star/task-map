@@ -264,6 +264,10 @@ code,.code{direction:ltr;unicode-bidi:isolate;background:var(--card-hi);border-r
 .pin .foot{width:10px;height:10px;border-radius:50%;background:#4f8cff;border:2px solid #fff;margin-top:-2px}
 .pin.home .b{border-color:#22c55e}.pin.home .stem,.pin.home .foot{background:#22c55e}
 .pin.done{opacity:.55}
+.search .mic{position:absolute;left:40px;top:50%;transform:translateY(-50%);border:0;background:var(--card-hi);border-radius:8px;width:30px;height:30px;display:grid;place-items:center;font-size:15px}
+.search .mic.on{background:var(--bad);animation:pulse 1.2s infinite}
+.learned{margin-top:10px;padding:8px 10px;border-radius:10px;background:var(--accent-soft);font-size:13px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.learned button{border:0;background:var(--accent);color:#fff;border-radius:7px;font-size:12px;padding:3px 8px}
 .pin.car .b{border-color:#f59e0b}.pin.car .stem,.pin.car .foot{background:#f59e0b}
 .due{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:var(--warn-soft);border:1px solid rgba(245,158,11,.35);margin-bottom:8px;font-size:13.5px}
 .due .e{font-size:22px}
@@ -274,22 +278,117 @@ code,.code{direction:ltr;unicode-bidi:isolate;background:var(--card-hi);border-r
 .me{width:18px;height:18px;border-radius:50%;background:#4f8cff;border:3px solid #fff;box-shadow:0 0 0 6px rgba(79,140,255,.3),0 2px 8px rgba(0,0,0,.5)}
 .me.gps{background:#22c55e;box-shadow:0 0 0 6px rgba(34,197,94,.3),0 2px 8px rgba(0,0,0,.5)}
 
+.m-only{display:none}
 @media (max-width: 860px){
-  .topbar{max-width:none;top:calc(10px + env(safe-area-inset-top));left:calc(10px + env(safe-area-inset-left));right:calc(10px + env(safe-area-inset-right));gap:6px}
+  :root{--tabh:64px}
+  .m-only{display:revert}
+  .desk-only{display:none!important}
   .input,select.input{font-size:16px}
-  .panel-head{cursor:pointer}
-  .pick-banner{top:calc(150px + env(safe-area-inset-top));width:calc(100vw - 24px);justify-content:space-between}
-  .clock{min-width:auto;padding:8px 12px}.clock .t{font-size:20px}
-  .status{flex:1;min-width:0;padding:8px 12px}.status .main{font-size:13px}
-  .tools{width:100%;justify-content:space-between;overflow-x:auto}
-  .panel{top:auto;right:8px;left:8px;bottom:calc(8px + env(safe-area-inset-bottom));width:auto;height:52vh;transition:height .25s}
-  .panel.collapsed{height:auto}
-  .panel.collapsed .panel-body{display:none}
-  .panel-body{display:flex;flex-direction:column}
-  #secPlan{order:1}#secAdd{order:2}#secHome{order:3}
-  .sheet-handle{display:block;width:44px;height:5px;border-radius:5px;background:var(--line);margin:8px auto 0}
-  .panel-head{padding:8px 16px 10px}
+  /* full-screen app shell */
+  .panel{inset:0 0 calc(var(--tabh) + env(safe-area-inset-bottom)) 0;width:auto;height:auto;border-radius:0;border:0;box-shadow:none;background:var(--bg);backdrop-filter:none;-webkit-backdrop-filter:none;padding-top:env(safe-area-inset-top)}
+  .panel-head,.panel-foot,.sheet-handle{display:none}
+  .panel-body{padding:4px 16px 28px;display:flex;flex-direction:column}
+  #mHead{order:0}#mToday{order:1}#mPlaces{order:1}#mMore{order:1}#secHome{order:2}#mMore2{order:3}#secAdd{order:1}
+  .panel-body > [data-page]{display:none}
+  body[data-tab="today"] .panel-body > [data-page~="today"],
+  body[data-tab="add"] .panel-body > [data-page~="add"],
+  body[data-tab="places"] .panel-body > [data-page~="places"],
+  body[data-tab="more"] .panel-body > [data-page~="more"]{display:block}
+  body[data-tab="map"] .panel{display:none}
+  /* map tab chrome */
+  .topbar{display:none}
+  body[data-tab="map"] .topbar{display:flex;top:calc(10px + env(safe-area-inset-top));left:12px;right:12px;max-width:none}
+  body[data-tab="map"] .clock{display:none}
+  body[data-tab="map"] .status{flex:1;min-width:0;padding:9px 13px;border-radius:14px}
+  body[data-tab="map"] .tools{position:fixed;left:12px;top:calc(72px + env(safe-area-inset-top));flex-direction:column;padding:4px;border-radius:14px}
+  body[data-tab="map"] .tools .iconbtn span{display:none}
+  body[data-tab="map"] .tools #btnSettings{display:none}
+  .m-mapcard{display:none}
+  body[data-tab="map"] .m-mapcard.has{display:flex}
+  .pick-banner{top:calc(70px + env(safe-area-inset-top));width:calc(100vw - 24px);justify-content:space-between}
+  /* tab bar */
+  .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:40;display:flex;justify-content:space-around;align-items:flex-start;height:calc(var(--tabh) + env(safe-area-inset-bottom));padding:6px 4px env(safe-area-inset-bottom);background:var(--panel);backdrop-filter:blur(20px) saturate(1.6);-webkit-backdrop-filter:blur(20px) saturate(1.6);border-top:1px solid var(--line)}
+  /* sheets instead of centered modals */
+  .modal-bg{align-items:flex-end;padding:0}
+  .modal{width:100%;max-height:92vh;border-radius:22px 22px 0 0;padding:10px 18px calc(22px + env(safe-area-inset-bottom));animation:sheetUp .28s cubic-bezier(.2,.8,.2,1)}
+  .modal::before{content:"";display:block;width:40px;height:5px;border-radius:5px;background:var(--line);margin:0 auto 12px}
+  .modal .actions{position:sticky;bottom:calc(-22px - env(safe-area-inset-bottom));background:var(--panel-solid);padding:10px 0 4px;margin-bottom:-6px}
+  /* gentle banners instead of blocking popups */
+  #leaveModal,#arriveModal{background:transparent;backdrop-filter:none;-webkit-backdrop-filter:none;align-items:flex-start;padding:calc(8px + env(safe-area-inset-top)) 10px 0;pointer-events:none}
+  #leaveModal .modal,#arriveModal .modal{pointer-events:auto;border-radius:20px;padding:14px 16px;max-height:60vh;animation:bannerIn .3s ease;box-shadow:0 14px 40px rgba(0,0,0,.35)}
+  #leaveModal .modal::before,#arriveModal .modal::before{display:none}
+  #leaveModal .modal .actions,#arriveModal .modal .actions{position:static;margin:10px 0 0;padding:0}
+  .arrive-head .ico{width:42px!important;height:42px!important;font-size:22px!important}
+  .arrive-head h2{font-size:16px}
+  .toast{top:calc(10px + env(safe-area-inset-top));bottom:auto;transform:translateX(-50%) translateY(-20px);font-size:13px;padding:9px 14px;border-radius:14px}
+  .toast.show{transform:translateX(-50%) translateY(0)}
 }
+@keyframes sheetUp{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
+@keyframes bannerIn{from{transform:translateY(-30px);opacity:0}to{transform:none;opacity:1}}
+/* ---------- mobile components ---------- */
+.tabbar{display:none}
+@media (max-width: 860px){ .tabbar{display:flex} }
+.tab{flex:1;border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10.5px;color:var(--muted);padding:2px 0}
+.tab svg{width:25px;height:25px}
+.tab.on{color:var(--accent)}
+.tab.add .plus{width:34px;height:34px;border-radius:11px;background:var(--accent);color:#fff;display:grid;place-items:center;margin-top:-2px;box-shadow:0 6px 16px rgba(79,140,255,.35)}
+.tab.add .plus svg{width:22px;height:22px}
+.m-head{padding:10px 2px 14px}
+.m-head .row{align-items:flex-end}
+.m-title{font-size:30px;font-weight:700;letter-spacing:-.3px;line-height:1.15;margin:0}
+.m-sub{color:var(--muted);font-size:14px;margin-top:4px}
+.m-date{background:var(--card-hi);border:0;border-radius:10px;padding:6px 10px;font-size:14px;color:var(--accent-2)}
+.hero{border-radius:20px;padding:16px;background:linear-gradient(160deg,var(--accent),#3b6fd8);color:#fff;margin-bottom:14px;box-shadow:0 10px 30px rgba(79,140,255,.25)}
+.hero .k{font-size:12.5px;opacity:.85}
+.hero .big{display:flex;align-items:center;gap:10px;margin:6px 0 2px}
+.hero .big .e{font-size:30px}
+.hero .big b{font-size:21px;line-height:1.25}
+.hero .line{font-size:14px;opacity:.92}
+.hero .acts{display:flex;gap:8px;margin-top:12px}
+.hero .acts a,.hero .acts button{flex:1;border:0;border-radius:12px;padding:10px;font-size:14px;font-weight:600;text-align:center;text-decoration:none;background:rgba(255,255,255,.2);color:#fff}
+.hero .acts .solid{background:#fff;color:#1d4ed8}
+.hero .bar{height:5px;border-radius:5px;background:rgba(255,255,255,.25);margin-top:10px;overflow:hidden}.hero .bar i{display:block;height:100%;background:#fff}
+.hero.calm{background:var(--card-hi);color:var(--text);box-shadow:none}
+.hero.calm .acts a,.hero.calm .acts button{background:var(--card);color:var(--text)}
+.hero.calm .acts .solid{background:var(--accent);color:#fff}
+.pills{display:flex;gap:8px;margin:0 0 14px;overflow-x:auto;scrollbar-width:none}
+.pill{flex:none;border:0;border-radius:999px;padding:8px 14px;font-size:13.5px;background:var(--card-hi);color:var(--text)}
+.group{background:var(--card);border-radius:16px;overflow:hidden;margin-bottom:14px}
+.group-title{font-size:13px;color:var(--muted);margin:16px 6px 7px}
+.m-row{display:flex;align-items:center;gap:12px;padding:12px 14px;cursor:pointer;position:relative}
+.m-row + .m-row,.m-row + .m-leg,.m-leg + .m-row{border-top:1px solid var(--line)}
+.m-row:active{background:var(--card-hi)}
+.m-time{width:50px;flex:none;text-align:center;font-weight:700;font-size:15px;line-height:1.1}
+.m-time small{display:block;font-weight:400;font-size:11px;color:var(--muted)}
+.m-ico{width:36px;height:36px;border-radius:11px;background:var(--card-hi);display:grid;place-items:center;font-size:19px;flex:none}
+.m-main{flex:1;min-width:0}
+.m-main b{display:block;font-size:15.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.m-main span{font-size:12.5px;color:var(--muted)}
+.m-chip{flex:none;font-size:11.5px;border-radius:999px;padding:3px 9px;background:var(--card-hi);color:var(--muted)}
+.m-chip.bad{background:var(--bad-soft);color:var(--bad)}.m-chip.warn{background:var(--warn-soft);color:var(--warn)}.m-chip.ok{background:var(--ok-soft);color:var(--ok)}
+.chev{color:var(--faint);font-size:18px;flex:none}
+.m-leg{display:flex;align-items:center;gap:8px;padding:6px 14px 6px 76px;font-size:12px;color:var(--muted);cursor:pointer}
+.m-leg .tbar{width:46px;height:4px}
+.m-row.done{opacity:.45}
+.m-row.now{background:var(--accent-soft)}
+.m-row.now .m-ico{background:var(--accent);color:#fff}
+.m-summary{text-align:center;color:var(--muted);font-size:12.5px;margin:4px 0 10px}
+.m-empty{text-align:center;padding:40px 10px;color:var(--muted);font-size:14.5px;line-height:1.8}
+.m-empty .e{font-size:44px;display:block;margin-bottom:6px}
+.m-empty button{margin-top:14px;border:0;background:var(--accent);color:#fff;border-radius:14px;padding:12px 22px;font-size:15px;font-weight:600}
+.m-list-row{display:flex;align-items:center;gap:12px;padding:13px 14px;cursor:pointer;width:100%;border:0;background:none;text-align:right;font-size:15px;color:var(--text)}
+.m-list-row + .m-list-row{border-top:1px solid var(--line)}
+.m-list-row .m-ico{width:32px;height:32px;font-size:17px;border-radius:9px}
+.m-list-row .grow small{display:block;color:var(--muted);font-size:12px}
+.m-mapcard{position:fixed;left:12px;right:12px;bottom:calc(var(--tabh) + env(safe-area-inset-bottom) + 10px);z-index:30;align-items:center;gap:10px;padding:10px 12px;border-radius:16px}
+.m-mapcard .e{font-size:24px}
+.m-mapcard a{border:0;background:var(--accent);color:#fff;border-radius:10px;padding:8px 12px;font-size:13px;text-decoration:none;font-weight:600;flex:none}
+details.more-opts{margin-top:14px;border-radius:12px;background:var(--card);padding:2px 12px}
+details.more-opts summary{cursor:pointer;padding:10px 0;font-size:13.5px;color:var(--muted);list-style:none}
+details.more-opts summary::-webkit-details-marker{display:none}
+details.more-opts summary::after{content:" ‹";float:left;transition:transform .2s}
+details.more-opts[open] summary::after{transform:rotate(-90deg)}
+details.more-opts[open]{padding-bottom:12px}
 </style>
 </head>
 <body>
@@ -319,7 +418,42 @@ code,.code{direction:ltr;unicode-bidi:isolate;background:var(--card-hi);border-r
     <input type="date" class="input" id="planDate" style="width:auto;padding:6px 9px;font-size:13px">
   </div>
   <div class="panel-body" id="panelBody">
-    <div class="section" id="secHome">
+    <div class="m-head m-only" id="mHead" data-page="today add places more"></div>
+    <section data-page="today" class="m-only" id="mToday">
+      <div id="mNext"></div>
+      <div id="mDue"></div>
+      <div class="pills" id="mPills">
+        <button class="pill" data-mact="here">📡 كمّل من مكاني</button>
+        <button class="pill" data-mact="opt">⚡ رتّب بأقصر طريق</button>
+        <button class="pill" data-mact="undo" id="mUndo" style="display:none">↩︎ رجّع الترتيب</button>
+        <button class="pill" data-mact="refresh">↻ حدّث الزحمة</button>
+      </div>
+      <div id="mList"></div>
+    </section>
+    <section data-page="places" class="m-only" id="mPlaces">
+      <div id="mDue2"></div>
+      <div class="group" id="mPlaceList"></div>
+      <p class="hint" style="text-align:center">احفظ أماكن جديدة بالنجمة ☆ في نتائج البحث من تبويب «أضف».</p>
+    </section>
+    <section data-page="more" class="m-only" id="mMore">
+      <div class="group-title">يومك</div>
+      <div class="group">
+        <button class="m-list-row" data-more="tpl"><span class="m-ico">📋</span><span class="grow">أيامي الجاهزة<small>احفظ يوم كامل وحطه بضغطة</small></span><span class="chev">‹</span></button>
+        <button class="m-list-row" data-more="ics"><span class="m-ico">📅</span><span class="grow">أضف يومي للتقويم<small>تنبيهات حتى والموقع مقفل</small></span><span class="chev">‹</span></button>
+        <button class="m-list-row" data-more="gmaps"><span class="m-ico">🗺️</span><span class="grow">افتح يومي في جوجل ماب</span><span class="chev">‹</span></button>
+        <button class="m-list-row" data-more="report"><span class="m-ico">📊</span><span class="grow">تقرير الأسبوع</span><span class="chev">‹</span></button>
+        <button class="m-list-row" data-more="car"><span class="m-ico">🅿️</span><span class="grow">مكان السيارة</span><span class="chev">‹</span></button>
+      </div>
+      <div class="group-title">البداية والتنقل</div>
+    </section>
+    <section data-page="more" class="m-only" id="mMore2">
+      <div class="group-title">الإعدادات</div>
+      <div class="group">
+        <button class="m-list-row" data-more="settings"><span class="m-ico">⚙️</span><span class="grow">الإعدادات<small>المفتاح، الزحمة، الباركنق، التتبع</small></span><span class="chev">‹</span></button>
+        <button class="m-list-row" data-more="diag"><span class="m-ico">🔧</span><span class="grow">اختبار الاتصال بجوجل</span><span class="chev">‹</span></button>
+      </div>
+    </section>
+    <div class="section" id="secHome" data-page="more">
       <div class="card">
         <div class="home-line">
           <div class="home-ico">🏠</div>
@@ -339,12 +473,13 @@ code,.code{direction:ltr;unicode-bidi:isolate;background:var(--card-hi);border-r
       </div>
     </div>
 
-    <div class="section" id="secAdd">
+    <div class="section" id="secAdd" data-page="add">
       <div class="section-title">ضيف مهمة</div>
       <div class="card">
         <form class="search" id="quickForm" autocomplete="off" style="margin:0 0 12px">
-          <input class="input" id="quickInput" placeholder="⚡ اكتب بسرعة: حلاق 5 العصر ساعة">
+          <input class="input" id="quickInput" placeholder="⚡ اكتب أو قول: حلاق 5 العصر ساعة" style="padding-left:76px">
           <button class="go" type="submit" aria-label="ضيف">＋</button>
+          <button class="mic" type="button" id="micBtn" aria-label="قول بالصوت" title="قول بالصوت">🎤</button>
         </form>
         <div class="mini-title"><span>⭐ أماكني</span><span class="grow"></span><button class="linkbtn" id="managePlaces">إدارة الأماكن</button></div>
         <div class="chips" id="savedChips"></div>
@@ -360,7 +495,7 @@ code,.code{direction:ltr;unicode-bidi:isolate;background:var(--card-hi);border-r
       </div>
     </div>
 
-    <div class="section" id="secPlan">
+    <div class="section desk-only" id="secPlan">
       <div class="section-title"><span class="grow">مخطط اليوم</span><button class="btn sm ghost" id="refreshBtn" title="حدّث الزحمة الآن">↻ تحديث</button><a class="btn sm ghost" id="openAllGmaps" target="_blank" rel="noopener" style="text-decoration:none">افتح في جوجل ماب ↗</a></div>
       <div id="dueBox"></div>
       <div class="plan-actions" id="planActions">
@@ -378,6 +513,15 @@ code,.code{direction:ltr;unicode-bidi:isolate;background:var(--card-hi);border-r
     <div class="stat"><div class="k">ترجع البيت</div><div class="v" id="sumHome">—</div></div>
   </div>
 </aside>
+
+<nav class="tabbar" id="tabbar">
+  <button class="tab on" data-tab="today"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3.5" y="4.5" width="17" height="16" rx="3"/><path d="M3.5 9.5h17M8 2.8v3.4M16 2.8v3.4M8 13.5h3M8 16.5h6"/></svg>اليوم</button>
+  <button class="tab" data-tab="map"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M9 4 3.5 6v14L9 18l6 2 5.5-2V4L15 6 9 4z"/><path d="M9 4v14M15 6v14"/></svg>الخريطة</button>
+  <button class="tab add" data-tab="add"><span class="plus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>أضف</button>
+  <button class="tab" data-tab="places"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="m12 3.5 2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8L3.5 9.7l5.9-.9z"/></svg>أماكني</button>
+  <button class="tab" data-tab="more"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5.5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="18.5" cy="12" r="1.8"/></svg>المزيد</button>
+</nav>
+<div class="m-mapcard glass" id="mMapCard"></div>
 
 <!-- Setup / API key -->
 <div class="modal-bg" id="setupModal">
@@ -412,6 +556,7 @@ code,.code{direction:ltr;unicode-bidi:isolate;background:var(--card-hi);border-r
       <label class="field">تحديث الزحمة كل<select class="input" id="setRefresh"><option value="5">5 دقايق</option><option value="10">10 دقايق</option><option value="15">15 دقيقة</option><option value="30">30 دقيقة</option><option value="0">يدوي فقط</option></select></label>
       <label class="field">شكل الخريطة<select class="input" id="setView"><option value="vector">3D + زحمة مباشرة</option><option value="photo">3D واقعي (مباني حقيقية)</option></select></label>
     </div>
+    <label class="toggle" style="margin-top:12px"><input type="checkbox" id="setAutoGps"> 📡 شغّل تتبّع موقعي تلقائياً (عشان يتعلم كم تجلس في كل مكان)</label>
     <label class="toggle" style="margin-top:12px"><input type="checkbox" id="setParking"> 🅿️ احسب وقت الباركنق لكل مكان</label>
     <div class="note" style="margin-top:12px" id="usageNote"></div>
     <div class="actions"><button class="btn primary" id="setSave">حفظ</button><button class="btn ghost" id="setClose">إغلاق</button><button class="btn sm" id="setDiag">🔧 اختبار جوجل</button><button class="btn danger sm" id="setClearDay" style="margin-right:auto">مسح مهام اليوم</button></div>
@@ -422,13 +567,12 @@ code,.code{direction:ltr;unicode-bidi:isolate;background:var(--card-hi);border-r
 <div class="modal-bg" id="taskModal">
   <div class="modal">
     <div class="picked"><div class="ico" id="tmEmoji">📍</div><div class="grow"><input class="input" id="tmName" style="font-weight:600;font-size:16px"><div class="hint" id="tmAddr" style="margin-top:4px"></div></div></div>
-    <div class="field" style="margin-bottom:6px">الأيقونة</div>
-    <div class="emoji-row" id="tmEmojis"></div>
+    <details class="more-opts" style="margin-top:4px"><summary>🎨 تغيير الأيقونة</summary><div class="emoji-row" id="tmEmojis"></div></details>
     <div class="field" style="margin:16px 0 8px">⏱️ كم بتجلس هناك؟</div>
     <div class="chips stay-chips" id="tmStay"></div>
     <div class="row" style="margin-top:8px"><span class="hint">أو بالدقايق:</span><input type="number" min="0" step="5" class="input num" id="tmStayCustom" style="width:90px"></div>
-    <div class="field" style="margin:16px 0 8px">🅿️ وقت الباركنق والمشي للمدخل</div>
-    <div class="chips" id="tmPark"></div>
+    <div class="learned" id="tmLearned" style="display:none"></div>
+    <details class="more-opts"><summary>🅿️ وقت الباركنق والمشي للمدخل</summary><div class="chips" id="tmPark"></div></details>
     <div class="field" style="margin:16px 0 0">📝 المهام اللي تسويها هناك <span class="hint" id="tmTodoHint">(تطلع لك أول ما توصل)</span></div>
     <div class="todos" id="tmTodos"></div>
     <form class="todo-add" id="tmTodoForm" autocomplete="off"><input class="input" id="tmTodoInput" placeholder="مثلاً: حليب، بيض، خبز… (Enter للإضافة)"><button class="btn sm" type="submit">+ ضيف</button></form>
@@ -1155,7 +1299,7 @@ function updateMe() {
   view.setMe(pos, false);
   view.setMe(gpsPos, true);
 }
-function renderAll() { renderTimeline(); renderSummary(); renderStatus(); drawMap(); updateGmapsAll(); }
+function renderAll() { renderTimeline(); renderSummary(); renderStatus(); drawMap(); updateGmapsAll(); renderMobile(); }
 
 function updateGmapsAll() {
   const a = $('#openAllGmaps');
@@ -1182,6 +1326,7 @@ function renderDayInputs() {
   $('#readyAt').value = plan.readyAt || '';
   $('#returnHome').checked = plan.returnHome;
   $('#travelMode').value = settings.travelMode;
+  if ($('#mDate')) $('#mDate').value = planDate;
   document.querySelectorAll('#startFrom button').forEach(b => b.classList.toggle('on', b.dataset.v === (plan.startFrom === 'here' ? 'here' : 'home')));
 }
 function syncToolButtons() {
@@ -1221,7 +1366,7 @@ function choosePlace(p) {
   if (searchTarget === 'home') { setHome({ ...p, name: 'البيت' }); searchTarget = 'task'; $('#searchInput').placeholder = 'ابحث عن مكان… (مثلاً: جولدز جيم)'; return; }
   const q = quickCtx; quickCtx = null;
   document.querySelectorAll('#quickChips .chip').forEach(c => c.classList.remove('on'));
-  openTask({ id: Math.random().toString(36).slice(2, 9), name: p.name, placeName: p.name, address: p.address, placeId: p.placeId, lat: p.lat, lng: p.lng, emoji: q?.e || guessEmoji(p.name), stayMin: q?.stay || 60, arriveMode: 'after', arriveAt: '' }, true);
+  openTask({ id: Math.random().toString(36).slice(2, 9), name: p.name, placeName: p.name, address: p.address, placeId: p.placeId, lat: p.lat, lng: p.lng, emoji: q?.e || guessEmoji(p.name), stayMin: learnedStay(p)?.min || q?.stay || 60, arriveMode: 'after', arriveAt: '' }, true);
   view?.focus?.({ lat: p.lat, lng: p.lng });
 }
 function setHome(p) {
@@ -1231,7 +1376,7 @@ function setHome(p) {
 function startPick(what) {
   if (!view?.map) { toast('الخريطة مو جاهزة، اربط مفتاح جوجل أول', true); return; }
   pick = { what }; $('#pickWhat').textContent = what === 'home' ? 'البيت' : 'مكان المهمة'; $('#pickBanner').classList.add('show');
-  if (innerWidth <= 860) $('#panel').classList.add('collapsed');
+  if (isMobile()) setTab('map');
 }
 function endPick() { pick = null; $('#pickBanner').classList.remove('show'); }
 function onMapClick(p) {
@@ -1271,7 +1416,7 @@ function openTask(task, isNew, mode = 'task') {
   $('#tmEmojis').innerHTML = EMOJIS.map(e => `<button type="button" class="${e === editing.emoji ? 'on' : ''}" data-e="${e}">${e}</button>`).join('');
   $('#tmStay').innerHTML = STAYS.map(m => `<button type="button" class="chip ${m === editing.stayMin ? 'on' : ''}" data-m="${m}">${D(m * 60)}</button>`).join('');
   $('#tmStayCustom').value = STAYS.includes(editing.stayMin) ? '' : editing.stayMin;
-  renderTmPark();
+  renderTmPark(); renderLearned();
   // default arrival suggestion
   if (!editing.arriveAt) {
     const base = sched ? (sched.stops.filter(Boolean).pop()?.leave || Date.now()) : Date.now();
@@ -1309,7 +1454,7 @@ function saveTask() {
     editing.lastVisit = $('#tmLastVisit').value || editing.lastVisit || (editing.everyDays ? todayStr() : '');
     const p = { ...editing, todos: editing.todos.map(x => ({ id: x.id, text: x.text })) };
     const i = places.findIndex(x => x.id === p.id); if (i >= 0) places[i] = p; else places.push(p);
-    savePlaces(); renderSaved(); renderPlacesList(); closeTask(); toast('انحفظ المكان ✓'); return;
+    savePlaces(); renderSaved(); renderPlacesList(); renderMobile(); closeTask(); toast('انحفظ المكان ✓'); return;
   }
   if ($('#tmSavePlace').checked && !$('#tmSavePlace').disabled) {
     const p = { id: uid(), name: editing.name, emoji: editing.emoji, lat: editing.lat, lng: editing.lng, address: editing.address || '', placeId: editing.placeId || null, stayMin: editing.stayMin, todos: editing.todos.map(x => ({ id: uid(), text: x.text })) };
@@ -1327,6 +1472,7 @@ function saveTask() {
   }
   savePlan(); renderDayInputs(); closeTask(); sched = sched && plan.tasks.length ? sched : null; renderAll(); recompute();
   toast(editingNew ? 'انضافت ✓ أرسم الطريق…' : 'تم التعديل ✓');
+  if (isMobile() && editingNew) setTab('today');
 }
 
 /* ───────────────────────── Saved places ───────────────────────── */
@@ -1336,10 +1482,10 @@ function renderSaved() {
     : `<div class="hint">احفظ الأماكن اللي تروحها دايماً بالنجمة ☆ في نتائج البحث، أو من نافذة المهمة، وتطلع هنا بضغطة وحدة.</div>`;
 }
 function taskFromPlace(p) {
-  return { id: uid(), name: p.name, emoji: p.emoji, lat: p.lat, lng: p.lng, address: p.address, placeId: p.placeId, placeRef: p.id, stayMin: p.stayMin || 60, arriveMode: 'after', arriveAt: '', todos: (p.todos || []).map(x => ({ id: uid(), text: x.text, done: false })) };
+  return { id: uid(), name: p.name, emoji: p.emoji, lat: p.lat, lng: p.lng, address: p.address, placeId: p.placeId, placeRef: p.id, stayMin: learnedStay({ ...p, placeRef: p.id })?.min || p.stayMin || 60, arriveMode: 'after', arriveAt: '', todos: (p.todos || []).map(x => ({ id: uid(), text: x.text, done: false })) };
 }
 function renderPlacesList() {
-  $('#placeList').innerHTML = places.length ? places.map(p => `<div class="place-row"><div class="e">${p.emoji}</div><div class="grow"><div class="n">${esc(p.name)}</div><div class="s">${p.everyDays ? `🔁 كل ${p.everyDays} يوم · ` : ''}⏱️ ${D((p.stayMin || 60) * 60)}${p.todos?.length ? ` · 📝 ${p.todos.map(x => esc(x.text)).slice(0, 3).join('، ')}${p.todos.length > 3 ? '…' : ''}` : ''}</div></div><button class="btn sm" data-padd="${p.id}">+ لليوم</button><button class="btn sm ghost" data-pedit="${p.id}">✎</button></div>`).join('')
+  $('#placeList').innerHTML = places.length ? places.map(p => `<div class="place-row"><div class="e">${p.emoji}</div><div class="grow"><div class="n">${esc(p.name)}</div><div class="s">${p.everyDays ? `🔁 كل ${p.everyDays} يوم · ` : ''}⏱️ ${D((p.stayMin || 60) * 60)}${(() => { const l = learnedStay({ ...p, placeRef: p.id }); return l ? ` · 📊 عادة ${D(l.min * 60)}` : ''; })()}${p.todos?.length ? ` · 📝 ${p.todos.map(x => esc(x.text)).slice(0, 3).join('، ')}${p.todos.length > 3 ? '…' : ''}` : ''}</div></div><button class="btn sm" data-padd="${p.id}">+ لليوم</button><button class="btn sm ghost" data-pedit="${p.id}">✎</button></div>`).join('')
     : `<div class="empty"><span class="e">⭐</span>ما عندك أماكن محفوظة للحين.</div>`;
 }
 
@@ -1638,6 +1784,71 @@ function renderReport() {
     ${delay > 600 ? `<p class="note" style="margin-top:12px">💡 الزحمة أكلت منك ${D(delay)} هالأسبوع. جرّب زر «⏱️ أحسن وقت» تحت كل مشوار.</p>` : ''}`;
 }
 
+/* ───────────────────────── Learned stay durations (GPS) ───────────────────────── */
+const visitsDB = LS.get('visits', {});
+let visitCur = LS.get('visitCur', null);
+const placeKeys = t => {
+  const ref = t.placeRef || (places.some(p => p.id === t.id) ? t.id : null);
+  return [ref ? 'p:' + ref : null, t.placeId ? 'g:' + t.placeId : null, t.lat != null ? `c:${(+t.lat).toFixed(3)},${(+t.lng).toFixed(3)}` : null].filter(Boolean);
+};
+function learnedStay(t) {
+  for (const k of placeKeys(t)) {
+    const v = visitsDB[k];
+    if (v && v.length >= 2) { const m = v.map(x => x.m).sort((a, b) => a - b); const med = m[Math.floor(m.length / 2)]; return { min: Math.max(5, Math.round(med / 5) * 5), n: v.length }; }
+  }
+  return null;
+}
+function finishVisit(endMs) {
+  const v = visitCur; visitCur = null; LS.del('visitCur');
+  const min = Math.round((endMs - v.start) / 6e4);
+  if (min < 3 || min > 480) return;
+  v.keys.forEach(k => { const arr = visitsDB[k] = visitsDB[k] || []; arr.push({ s: v.start, m: min }); if (arr.length > 12) arr.shift(); });
+  LS.set('visits', visitsDB);
+  toast(`📊 سجّلت إنك جلست في ${v.emoji || ''} ${v.name} ${D(min * 60)}`, false, 6000);
+  renderPlacesList?.();
+}
+function trackVisit(pos) {
+  const now = Date.now();
+  if (visitCur) {
+    if (now - visitCur.lastIn > 25 * 6e4 && !visitCur.outSince) { visitCur = null; LS.del('visitCur'); } // page was closed too long — end time unknown, drop it
+    else {
+      const d = haversine(pos, visitCur);
+      if (d <= 200) { visitCur.lastIn = now; visitCur.outSince = null; }
+      else { if (!visitCur.outSince) visitCur.outSince = now; if (now - visitCur.outSince > 2 * 6e4) { finishVisit(visitCur.lastIn); return; } }
+      LS.set('visitCur', visitCur); return;
+    }
+  }
+  if (settings.home && haversine(pos, settings.home) < 120) return; // at home: not a visit
+  let best = null, bd = Infinity;
+  for (const c of [...plan.tasks, ...places]) { if (c.lat == null) continue; const d = haversine(pos, c); if (d < bd) { bd = d; best = c; } }
+  if (best && bd <= 120) {
+    visitCur = { keys: placeKeys(best), name: best.name, emoji: best.emoji, lat: best.lat, lng: best.lng, start: now, lastIn: now, outSince: null };
+    LS.set('visitCur', visitCur);
+  }
+}
+function renderLearned() {
+  const el = $('#tmLearned'); if (!el || !editing) return;
+  const l = learnedStay(editing);
+  if (!l) { el.style.display = 'none'; return; }
+  el.style.display = '';
+  el.innerHTML = `📊 عادة تجلس هنا <b>${D(l.min * 60)}</b> (من ${l.n} زيارات)${l.min !== editing.stayMin ? ` <button type="button" id="useLearned">استخدمها</button>` : ' ✓'}`;
+}
+
+/* ───────────────────────── Voice input ───────────────────────── */
+let recog = null;
+function toggleMic() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { toast('المتصفح ما يدعم الكلام هنا — استخدم زر المايك 🎙️ في كيبورد الجوال داخل نفس الخانة', true, 7000); $('#quickInput').focus(); return; }
+  if (recog) { recog.stop(); return; }
+  recog = new SR(); recog.lang = 'ar-EG'; recog.interimResults = true; recog.maxAlternatives = 1; recog.continuous = false;
+  let finalText = '';
+  $('#micBtn').classList.add('on'); $('#quickInput').placeholder = '🎤 أسمعك… قول مثلاً: حلاق خمسة العصر ساعة';
+  recog.onresult = e => { let t = ''; for (const r of e.results) t += r[0].transcript; $('#quickInput').value = t; if (e.results[e.results.length - 1].isFinal) finalText = t; };
+  recog.onerror = e => { if (e.error === 'not-allowed' || e.error === 'service-not-allowed') toast('اسمح للمتصفح يستخدم المايك (وفي الآيفون لازم Siri تكون مفعّلة)', true, 7000); else if (e.error !== 'no-speech' && e.error !== 'aborted') toast('ما قدرت أسمعك: ' + e.error, true); };
+  recog.onend = () => { $('#micBtn').classList.remove('on'); $('#quickInput').placeholder = '⚡ اكتب أو قول: حلاق 5 العصر ساعة'; const t = finalText || $('#quickInput').value; recog = null; if (t.trim()) quickAdd(t); };
+  try { recog.start(); } catch (e) { recog = null; $('#micBtn').classList.remove('on'); toast('ما قدرت أشغل المايك', true); }
+}
+
 /* ───────────────────────── Recurring errands ───────────────────────── */
 const REPEATS = [0, 3, 7, 10, 14, 21, 30];
 function renderTmRepeat() {
@@ -1666,7 +1877,9 @@ function duePlaces() {
 function renderDue() {
   const box = $('#dueBox'); if (!box) return;
   const due = duePlaces();
-  box.innerHTML = due.map(({ p, since }) => `<div class="due"><span class="e">${p.emoji}</span><div class="grow"><b>🔁 صار لك ${since} يوم ما رحت ${esc(p.name)}</b><span class="hint">تروحه عادة ${p.everyDays === 7 ? 'كل أسبوع' : `كل ${p.everyDays} يوم`}</span></div><button class="btn sm primary" data-dueadd="${p.id}">ضيفه لليوم</button><button class="btn sm ghost" data-duesnooze="${p.id}">بكرة</button></div>`).join('');
+  const html = due.map(({ p, since }) => `<div class="due"><span class="e">${p.emoji}</span><div class="grow"><b>🔁 صار لك ${since} يوم ما رحت ${esc(p.name)}</b><span class="hint">تروحه عادة ${p.everyDays === 7 ? 'كل أسبوع' : `كل ${p.everyDays} يوم`}</span></div><button class="btn sm primary" data-dueadd="${p.id}">ضيفه لليوم</button><button class="btn sm ghost" data-duesnooze="${p.id}">بكرة</button></div>`).join('');
+  box.innerHTML = html;
+  ['#mDue', '#mDue2'].forEach(s => { const el = $(s); if (el) el.innerHTML = html; });
 }
 
 /* ───────────────────────── Leave-now alerts ───────────────────────── */
@@ -1679,6 +1892,7 @@ function showLeave(L, title, note) {
   const ti = trafficInfo(L.r);
   $('#lvNote').innerHTML = note || (ti ? `حالة الطريق: <b>${ti.txt}</b>` : '');
   $('#lvNav').href = navLink(L.from, L.to);
+  if (isMobile()) { clearTimeout(showLeave.t); showLeave.t = setTimeout(() => $('#leaveModal').classList.remove('open'), 20000); }
   $('#leaveModal').classList.add('open'); beep();
   const old = document.title; document.title = `🚗 ${title}`; setTimeout(() => document.title = old, 20000);
 }
@@ -1759,8 +1973,21 @@ function openCar() {
 
 /* ───────────────────────── Quick add by typing ───────────────────────── */
 const normAr = s => String(s || '').replace(/[ًٌٍَُِّْـ]/g, '').replace(/[أإآ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي').toLowerCase().trim();
+const NUM_WORDS = [
+  [/(واحد[ةه]?|وحد[ةه])/, 1], [/(اثنين|اتنين|ثنتين|اثنتين|اثنان)/, 2], [/(ثلاث[ةه]?|تلات[ةه]?|ثلاثه)/, 3], [/(اربع[ةه]?|أربع[ةه]?)/, 4], [/(خمس[ةه]?)/, 5],
+  [/(ست[ةه]?|سته)/, 6], [/(سبع[ةه]?)/, 7], [/(ثمان[يى][ةه]?|ثمان|تمن[يى][ةه]?|تمانية|تمن)/, 8], [/(تسع[ةه]?)/, 9], [/(عشر[ةه]?)/, 10],
+  [/(حداشر|احداشر|حدعش|احدعش|احدى عشر|إحدى عشر)/, 11], [/(اتناشر|اثناشر|اثنعش|اثنا عشر|اثني عشر)/, 12],
+];
+const TENS = [[/(عشرين)/, 20], [/(ثلاثين|تلاتين)/, 30], [/(اربعين|أربعين)/, 40], [/(خمسين)/, 50]];
+function wordsToDigits(s) {
+  // compound first: "خمسة وأربعين" → 45
+  for (const [ur, u] of NUM_WORDS.slice(0, 9)) for (const [tr, t] of TENS) s = s.replace(new RegExp(`\\s${ur.source}\\s*و\\s*${tr.source}(?=\\s)`, 'g'), ` ${u + t}`);
+  for (const [r, v] of [...TENS, ...NUM_WORDS.slice().reverse()]) s = s.replace(new RegExp(`\\s(?:ال)?${r.source}(?=\\s)`, 'g'), ` ${v}`);
+  return s;
+}
 function parseQuick(text, nowMs = Date.now()) {
-  let s = ' ' + String(text).replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[،,؛]/g, ' ').replace(/\s+/g, ' ') + ' ';
+  let s = ' ' + String(text).replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[،,؛.!?؟]/g, ' ').replace(/\s+/g, ' ') + ' ';
+  s = wordsToDigits(s);
   let stay = null, hour = null, min = 0, ampm = null;
   const take = (re, fn) => { const m = s.match(re); if (!m) return false; fn(m); s = s.replace(m[0], ' '); return true; };
   // duration
@@ -1816,12 +2043,142 @@ async function quickAdd(text) {
     } catch (e) { toast('البحث ما اشتغل', true); return; }
     finally { $('#quickInput').disabled = false; }
   }
-  if (q.stay) task.stayMin = q.stay;
+  if (q.stay) task.stayMin = q.stay; else { const l = learnedStay(task); if (l) task.stayMin = l.min; }
   if (q.time) { task.arriveMode = 'at'; task.arriveAt = q.time; }
   $('#quickInput').value = '';
   openTask(task, true);
   view?.focus?.({ lat: task.lat, lng: task.lng });
   toast(`فهمت: ${task.emoji} ${task.name}${q.time ? ` · توصل ${T(atTime(planDate, q.time))}` : ''}${q.stay ? ` · ${D(q.stay * 60)}` : ''} — راجع واضغط ضيف`, false, 6000);
+}
+
+/* ───────────────────────── Mobile app shell ───────────────────────── */
+const isMobile = () => matchMedia('(max-width: 860px)').matches;
+const TAB_TITLES = { add: 'أضف مشوار', places: 'أماكني', more: 'المزيد' };
+function buildHead() {
+  const tab = document.body.dataset.tab || 'today';
+  const title = tab === 'today' ? (isToday() ? 'اليوم' : new Intl.DateTimeFormat('ar-EG-u-nu-latn', { weekday: 'long', day: 'numeric', month: 'short' }).format(new Date(atTime(planDate, '12:00')))) : TAB_TITLES[tab] || '';
+  $('#mHead').innerHTML = `<div class="row"><div class="grow"><h1 class="m-title">${esc(title)}</h1><div class="m-sub" id="mSub"></div></div>${tab === 'today' ? `<input type="date" class="m-date" id="mDate" value="${planDate}" aria-label="اختر اليوم">` : ''}</div>`;
+  const d = $('#mDate'); if (d) d.onchange = () => { $('#planDate').value = d.value || todayStr(); $('#planDate').dispatchEvent(new Event('change')); buildHead(); renderMobile(); };
+}
+function setTab(t) {
+  document.body.dataset.tab = t;
+  document.querySelectorAll('#tabbar .tab').forEach(b => b.classList.toggle('on', b.dataset.tab === t));
+  if (t !== 'map') { $('#panelBody').scrollTop = 0; buildHead(); }
+  if (t === 'add') setTimeout(() => $('#quickInput').focus({ preventScroll: true }), 80);
+  renderMobile();
+  if (t === 'map' && view?.map) setTimeout(() => drawMap(true), 60);
+}
+const splitT = ms => { const s = T(ms).split(' '); return `${s[0]}<small>${s[1] || ''}</small>`; };
+function legName(L) { return L.toIdx >= 0 ? plan.tasks[L.toIdx]?.name : 'البيت'; }
+function legEmoji(L) { return L.toIdx >= 0 ? plan.tasks[L.toIdx]?.emoji : '🏠'; }
+function heroHtml() {
+  const calm = (k, big, line, acts = '') => `<div class="hero calm"><div class="k">${k}</div><div class="big"><b>${big}</b></div>${line ? `<div class="line">${line}</div>` : ''}${acts ? `<div class="acts">${acts}</div>` : ''}</div>`;
+  if (!settings.apiKey) return calm('أول خطوة', '🔑 اربط خرائط جوجل', 'عشان أرسم طرقك والزحمة', `<button class="solid" data-mgo="setup">اربط الحين</button>`);
+  if (!settings.home) return calm('أول خطوة', '🏠 حدد مكان البيت', 'من تبويب «المزيد»', `<button class="solid" data-mgo="more">حدّد البيت</button>`);
+  if (!plan.tasks.some(t => !t.done) || !sched) return '';
+  const now = Date.now(), { legs, stops } = sched;
+  if (!isToday()) return calm('مخطط اليوم', `تطلع ${T(legs[0].depart)}`, `${stops.filter(Boolean).length} مشاوير · ترجع ${T(sched.end)}`);
+  const ph = phaseAt(now), nav = L => `<a class="solid" href="${navLink(L.from, L.to)}" target="_blank" rel="noopener">🧭 ابدأ الملاحة</a>`;
+  const hero = (k, e, big, line, bar, acts) => `<div class="hero"><div class="k">${k}</div><div class="big"><span class="e">${e}</span><b>${big}</b></div><div class="line">${line}</div>${bar != null ? `<div class="bar"><i style="width:${(bar * 100).toFixed(0)}%"></i></div>` : ''}<div class="acts">${acts}</div></div>`;
+  if (ph.type === 'before') { const L = legs[0]; return hero('المشوار الجاي', legEmoji(L), `اطلع ${T(L.depart)}`, `إلى ${esc(legName(L))} · ${untilTxt(L.depart)} · الطريق ${D(L.r.dur)}`, null, nav(L) + `<button data-mgo="map">الخريطة</button>`); }
+  if (ph.type === 'leg') { const L = legs[ph.i]; return hero('في الطريق إلى', legEmoji(L), esc(legName(L)), `توصل ${T(L.arrive)} · باقي ${D((L.arrive - now) / 1000)}`, ph.frac, nav(L) + `<button data-mgo="map">الخريطة</button>`); }
+  if (ph.type === 'stop') {
+    const s = stops[ph.i], t = s.task, nx = legs.find(L => L.fromIdx === ph.i), left = todosLeft(t);
+    return hero('أنت الحين في', t.emoji, esc(t.name), `باقي ${D((s.leave - now) / 1000)}${nx ? ` · بعدها ${esc(legName(nx))} ${T(nx.depart)}` : ''}`, ph.frac,
+      (left ? `<button class="solid" data-mtask="${ph.i}">📝 مهامك هنا (${left})</button>` : `<button data-mtask="${ph.i}">التفاصيل</button>`) + (nx ? `<a href="${navLink(nx.from, nx.to)}" target="_blank" rel="noopener">🧭 المشوار الجاي</a>` : ''));
+  }
+  if (ph.type === 'wait') { const nx = legs.find(L => L.fromIdx === ph.i); return hero('وقت فاضي', '☕', `اطلع ${T(nx.depart)}`, `إلى ${esc(legName(nx))} · ${untilTxt(nx.depart)}`, null, nav(nx)); }
+  return calm('خلصت يومك', '🎉 يعطيك العافية', sched.homeArrive ? `رجوعك للبيت ${T(sched.homeArrive)}` : '');
+}
+function primaryChip(t, s, state) {
+  if (s.late) return { cls: 'bad', txt: `متأخر ${D(s.late)}` };
+  const hs = t.placeId ? hoursStatus(t.placeId, s.arrive, s.leave) : null;
+  if (hs && hs.cls === 'bad') return { cls: 'bad', txt: 'مسكّر' };
+  if (hs && hs.cls === 'warn') return { cls: 'warn', txt: 'يسكّر بدري' };
+  if (state === 'now') return { cls: 'ok', txt: 'أنت هنا' };
+  const left = todosLeft(t); if (left) return { cls: '', txt: `📝 ${left}` };
+  return null;
+}
+function listHtml() {
+  if (!settings.home) return '';
+  const doneChips = plan.tasks.some(t => t.done) ? `<div class="m-summary">خلصت: ${plan.tasks.map((t, i) => t.done ? `<button class="done-chip" data-undone="${i}">✓ ${t.emoji} ${esc(t.name)}</button>` : '').join(' ')}</div>` : '';
+  if (!plan.tasks.some(t => !t.done)) return `<div class="m-empty"><span class="e">${plan.tasks.length ? '🎉' : '🗺️'}</span>${plan.tasks.length ? 'خلصت كل مشاوير اليوم.' : 'يومك فاضي.<br>ضيف مشاويرك وأرسم لك اليوم كامل.'}<br><button data-mgo="add">＋ أضف مشوار</button></div>` + doneChips;
+  if (!sched) return `<div class="m-empty"><span class="e">⏳</span>أحسب الطرق والزحمة…</div>`;
+  const now = Date.now(), today = isToday(), { legs, stops } = sched, st0 = sched.start || { kind: 'home' };
+  const L0 = legs[0], started = today && now >= L0.depart;
+  let h = `<div class="m-row ${started ? 'done' : ''}" data-mgo="start"><div class="m-time">${splitT(L0.depart)}</div><span class="m-ico">${st0.kind === 'here' ? '📡' : '🏠'}</span><div class="m-main"><b>${st0.kind === 'here' ? 'تطلع من مكانك' : 'تطلع من البيت'}</b><span>${today ? untilTxt(L0.depart) : ''}</span></div></div>`;
+  legs.forEach((L, li) => {
+    const r = L.r, delay = r.est ? 0 : r.dur - (r.staticDur || r.dur);
+    h += `<div class="m-leg" ${r.est ? `data-legerr="${li}"` : `data-mleg="${li}"`}>${settings.travelMode === 'WALK' ? '🚶' : '🚗'} ${D(r.dur)}${delay > 180 ? ` · <span style="color:var(--${delay > r.staticDur * .3 ? 'bad' : 'warn'})">زحمة +${D(delay)}</span>` : ''}${r.est ? ' · <span style="color:var(--warn)">تقديري ⚠</span>' : ''} ${trafficBar(r)}</div>`;
+    if (L.toIdx >= 0) {
+      const s = stops[L.toIdx], t = s.task, state = today ? (now >= s.leave ? 'done' : now >= s.arrive ? 'now' : '') : '';
+      const ch = primaryChip(t, s, state);
+      h += `<div class="m-row ${state}" data-mtask="${s.idx}"><div class="m-time">${splitT(s.arrive)}</div><span class="m-ico">${t.emoji}</span><div class="m-main"><b>${esc(t.name)}</b><span>${D(t.stayMin * 60)} · لين ${T(s.leave)}</span></div>${ch ? `<span class="m-chip ${ch.cls}">${ch.txt}</span>` : ''}<span class="chev">‹</span></div>`;
+    } else {
+      const done = today && now >= L.arrive;
+      h += `<div class="m-row ${done ? 'done' : ''}"><div class="m-time">${splitT(L.arrive)}</div><span class="m-ico">🏠</span><div class="m-main"><b>الرجوع للبيت</b><span>${today ? untilTxt(L.arrive) : ''}</span></div></div>`;
+    }
+  });
+  const drive = legs.reduce((s, L) => s + L.r.dur, 0), dist = legs.reduce((s, L) => s + L.r.dist, 0);
+  return `<div class="group">${h}</div><div class="m-summary">${D(drive)} في الطريق · ${KM(dist)}${sched.homeArrive ? ` · ترجع ${T(sched.homeArrive)}` : ''}</div>` + doneChips;
+}
+function renderMobilePlaces() {
+  $('#mPlaceList').innerHTML = places.length ? places.map(p => {
+    const l = learnedStay({ ...p, placeRef: p.id });
+    const sub = [p.everyDays ? `🔁 كل ${p.everyDays} يوم` : '', `⏱️ ${D((l?.min || p.stayMin || 60) * 60)}${l ? ' (من زياراتك)' : ''}`, p.todos?.length ? `📝 ${p.todos.length}` : ''].filter(Boolean).join(' · ');
+    return `<div class="m-list-row" data-pedit2="${p.id}"><span class="m-ico">${p.emoji}</span><span class="grow">${esc(p.name)}<small>${sub}</small></span><button class="pill" data-padd2="${p.id}">＋ اليوم</button></div>`;
+  }).join('') : `<div class="m-empty"><span class="e">⭐</span>ما عندك أماكن محفوظة.<br><button data-mgo="add">ابحث واحفظ مكان</button></div>`;
+}
+function renderMobile() {
+  if (!isMobile()) return;
+  if (!document.body.dataset.tab) document.body.dataset.tab = 'today';
+  if (!$('#mHead').innerHTML) buildHead();
+  const tab = document.body.dataset.tab;
+  const sub = $('#mSub');
+  if (sub) sub.textContent = tab === 'today' ? (sched ? `${$('#statusMain').textContent}` : (plan.tasks.length ? 'أحسب…' : '')) : tab === 'places' ? `${places.length} أماكن محفوظة` : '';
+  if (tab === 'today') {
+    $('#mNext').innerHTML = heroHtml(); $('#mList').innerHTML = listHtml();
+    $('#mPills').style.display = sched && plan.tasks.some(t => !t.done) ? '' : 'none';
+    $('#mUndo').style.display = $('#btnUndoOrder').style.display === 'none' ? 'none' : '';
+  }
+  if (tab === 'places') renderMobilePlaces();
+  // compact next-step card on the map tab
+  const mc = $('#mMapCard');
+  let card = '';
+  if (sched && isToday()) {
+    const now = Date.now(), ph = phaseAt(now);
+    const L = ph.type === 'before' ? sched.legs[0] : ph.type === 'leg' ? sched.legs[ph.i] : (ph.type === 'stop' || ph.type === 'wait') ? sched.legs.find(x => x.fromIdx === ph.i) : null;
+    if (L) card = `<span class="e">${legEmoji(L)}</span><div class="grow"><b>${ph.type === 'leg' ? `توصل ${T(L.arrive)}` : `اطلع ${T(L.depart)}`}</b><div class="hint">${esc(legName(L))} · ${D(L.r.dur)}</div></div><a href="${navLink(L.from, L.to)}" target="_blank" rel="noopener">🧭 ابدأ</a>`;
+  }
+  mc.innerHTML = card; mc.classList.toggle('has', !!card);
+}
+function wireMobile() {
+  $('#tabbar').onclick = e => { const b = e.target.closest('[data-tab]'); if (b) setTab(b.dataset.tab); };
+  const go = e => {
+    const g = e.target.closest('[data-mgo]');
+    if (g) { const v = g.dataset.mgo; if (v === 'setup') openSetup(); else if (v === 'start') setTab('more'); else setTab(v); return true; }
+    const tk = e.target.closest('[data-mtask]'); if (tk) { const t = plan.tasks[+tk.dataset.mtask]; if (t) openTask(t, false); return true; }
+    const lg = e.target.closest('[data-mleg]'); if (lg) { bestTime(+lg.dataset.mleg); return true; }
+    const le = e.target.closest('[data-legerr]'); if (le) { const L = sched?.legs[+le.dataset.legerr]; showDiag('ليش الطريق تقديري؟', [['السبب من جوجل', false, L?.r?.error || routeErrors.join('\n') || 'جرّب ↻ تحديث']]); return true; }
+    const ud = e.target.closest('[data-undone]'); if (ud) { const t = plan.tasks[+ud.dataset.undone]; if (t) { t.done = false; savePlan(); recompute(); } return true; }
+    return false;
+  };
+  $('#mToday').onclick = e => {
+    if (go(e)) return;
+    const p = e.target.closest('[data-mact]'); if (!p) return;
+    ({ here: replanFromHere, opt: optimizeDay, undo: undoOrder, refresh: () => { compute(true); toast('أحدّث الزحمة…'); } })[p.dataset.mact]?.();
+  };
+  $('#mPlaces').onclick = e => {
+    if (go(e)) return;
+    const ad = e.target.closest('[data-padd2]'); if (ad) { e.stopPropagation(); const p = places.find(x => x.id === ad.dataset.padd2); if (p) openTask(taskFromPlace(p), true); return; }
+    const ed = e.target.closest('[data-pedit2]'); if (ed) { const p = places.find(x => x.id === ed.dataset.pedit2); if (p) openTask(p, false, 'place'); }
+  };
+  const more = e => {
+    const b = e.target.closest('[data-more]'); if (!b) return;
+    ({ tpl: () => $('#btnTpl').click(), ics: exportIcs, gmaps: () => window.open($('#openAllGmaps').href, '_blank'), report: () => $('#btnReport').click(), car: openCar, settings: openSettings, diag: runDiagnostics })[b.dataset.more]?.();
+  };
+  $('#mMore').onclick = more; $('#mMore2').onclick = more;
+  addEventListener('resize', () => { if (isMobile()) { if (!document.body.dataset.tab) document.body.dataset.tab = 'today'; buildHead(); renderMobile(); } });
 }
 
 /* ───────────────────────── Diagnostics ───────────────────────── */
@@ -1852,6 +2209,7 @@ async function runDiagnostics() {
 function openSetup() { $('#keyInput').value = settings.apiKey || ''; $('#mapIdInput').value = settings.mapId || ''; $('#setupModal').classList.add('open'); }
 function openSettings() {
   $('#setParking').checked = settings.parking !== false;
+  $('#setAutoGps').checked = !!settings.autoGps;
   $('#setKey').value = settings.apiKey; $('#setMapId').value = settings.mapId; $('#setRefresh').value = String(settings.refreshMin); $('#setView').value = settings.view;
   const u = LS.get('usage.' + todayStr().slice(0, 7), { routes: 0, places: 0 });
   $('#usageNote').innerHTML = `استخدامك هذا الشهر (من هذا المتصفح): <b class="num">${u.routes}</b> طلب مسار و <b class="num">${u.places}</b> بحث أماكن.<br>الحد المجاني الشهري تقريباً 5,000 لكل واحد منهم. المسارات تنحفظ مؤقتاً عشان ما تنطلب كثير.`;
@@ -1878,7 +2236,7 @@ function toggleGps() {
   if (!navigator.geolocation) { toast('المتصفح ما يدعم تحديد الموقع', true); return; }
   let first = true;
   gpsWatch = navigator.geolocation.watchPosition(p => {
-    gpsPos = { lat: p.coords.latitude, lng: p.coords.longitude }; updateMe(); checkArrival();
+    gpsPos = { lat: p.coords.latitude, lng: p.coords.longitude }; updateMe(); checkArrival(); trackVisit(gpsPos);
     if (first && view?.focus) { first = false; view.focus(gpsPos); }
   }, () => { toast('ما قدرت أوصل لموقعك، تأكد إنك سمحت للمتصفح', true); gpsWatch = null; syncToolButtons(); }, { enableHighAccuracy: true });
   syncToolButtons();
@@ -1909,7 +2267,7 @@ let lastDay = todayStr();
 function tickPlan() {
   const td = todayStr();
   if (td !== lastDay) { if (planDate === lastDay) { planDate = td; plan = loadPlan(planDate); autoTemplate(); renderDayInputs(); recompute(); } lastDay = td; }
-  renderStatus(); renderTimeline(); renderSummary(); drawMap(); checkArrival(); markVisits(); checkLeave(); renderDue();
+  renderStatus(); renderTimeline(); renderSummary(); drawMap(); checkArrival(); markVisits(); checkLeave(); renderDue(); renderMobile();
   // refresh traffic more often when a departure is close
   const nextDep = sched?.legs.find(L => L.depart > Date.now())?.depart;
   const every = settings.refreshMin > 0 ? (nextDep && nextDep - Date.now() < 45 * 6e4 ? Math.min(5, settings.refreshMin) : settings.refreshMin) : 0;
@@ -1986,11 +2344,12 @@ function wire() {
   $('#arOk').onclick = () => $('#arriveModal').classList.remove('open');
   $('#diagClose').onclick = () => $('#diagModal').classList.remove('open');
   $('#tmRepeat').onclick = e => { const b = e.target.closest('[data-rep]'); if (!b) return; editing.everyDays = +b.dataset.rep || 0; if (editing.everyDays && !$('#tmLastVisit').value) $('#tmLastVisit').value = todayStr(); renderTmRepeat(); };
-  $('#dueBox').onclick = e => {
+  const onDue = e => {
     const ad = e.target.closest('[data-dueadd]'), sn = e.target.closest('[data-duesnooze]');
     if (ad) { const p = places.find(x => x.id === ad.dataset.dueadd); if (p) openTask(taskFromPlace(p), true); }
     if (sn) { const p = places.find(x => x.id === sn.dataset.duesnooze); if (p) { p.snooze = todayStr(); savePlaces(); renderDue(); } }
   };
+  ['#dueBox', '#mDue', '#mDue2'].forEach(s => $(s) && ($(s).onclick = onDue));
   $('#lvOk').onclick = () => $('#leaveModal').classList.remove('open');
   $('#btnIcs').onclick = exportIcs;
   $('#btnCar').onclick = openCar;
@@ -1998,6 +2357,8 @@ function wire() {
   $('#carDel').onclick = () => { LS.del('car'); lastModelSig = ''; drawMap(); $('#carModal').classList.remove('open'); toast('انمسح مكان السيارة'); };
   $('#carShow').onclick = () => { const c = LS.get('car', null); $('#carModal').classList.remove('open'); if (c) view?.focus?.(c); };
   $('#carNote').onchange = () => { const c = LS.get('car', null); if (c) { c.note = $('#carNote').value; LS.set('car', c); } };
+  $('#micBtn').onclick = toggleMic;
+  $('#tmLearned').onclick = e => { if (e.target.id !== 'useLearned') return; const l = learnedStay(editing); if (!l) return; editing.stayMin = l.min; $('#tmStayCustom').value = STAYS.includes(l.min) ? '' : l.min; document.querySelectorAll('#tmStay .chip').forEach(x => x.classList.toggle('on', +x.dataset.m === l.min)); renderLearned(); };
   $('#quickForm').onsubmit = e => { e.preventDefault(); quickAdd($('#quickInput').value); };
   $('#startFrom').onclick = e => { const b = e.target.closest('[data-v]'); if (b) setStartFrom(b.dataset.v); };
   $('#btnHere').onclick = replanFromHere;
@@ -2031,6 +2392,7 @@ function wire() {
   $('#setClose').onclick = () => $('#settingsModal').classList.remove('open');
   $('#setSave').onclick = async () => {
     settings.refreshMin = +$('#setRefresh').value;
+    settings.autoGps = $('#setAutoGps').checked; if (settings.autoGps && gpsWatch == null) toggleGps();
     const pk = $('#setParking').checked; if (pk !== (settings.parking !== false)) { settings.parking = pk; recompute(); }
     const newView = $('#setView').value; const viewChanged = newView !== settings.view; settings.view = newView; saveSettings();
     $('#settingsModal').classList.remove('open');
@@ -2059,10 +2421,12 @@ async function startGoogle() {
   if (!settings.home) { try { gpsPos = await getGps(6000); setHome({ ...gpsPos, name: 'البيت' }); toast('حطيت البيت على موقعك الحالي — تقدر تغيره من اللوحة', false, 6000); } catch {} }
   await mountView();
   recompute();
+  if (settings.autoGps && gpsWatch == null) toggleGps();
 }
 
 function init() {
-  wire(); autoTemplate(); renderHome(); renderDayInputs(); renderSaved(); tickClock(); renderAll(); renderDue();
+  document.body.dataset.tab = 'today';
+  wire(); wireMobile(); autoTemplate(); renderHome(); renderDayInputs(); renderSaved(); tickClock(); renderAll(); renderDue();
   setInterval(tickClock, 1000);
   setInterval(tickPlan, 20000);
   if (!settings.apiKey) {
