@@ -2496,8 +2496,29 @@ function init() {
   recompute();
 }
 
+/* رابط من «يومي»: ?add=اسم المكان&q=كلمة البحث
+   لو المكان من أماكني ينضاف على طول، وإلا أدور عليه. */
+function handleYawmiLink() {
+  const u = new URL(location.href);
+  const name = (u.searchParams.get('add') || '').trim();
+  if (!name) return;
+  const q = (u.searchParams.get('q') || name).trim();
+  history.replaceState(null, '', location.pathname);
+  const n = s => String(s || '').toLowerCase().replace(/\s+/g, ' ').trim();
+  const p = places.find(x => n(x.name) === n(name)) || places.find(x => n(x.name).includes(n(q)) || (n(q).length > 2 && n(q).includes(n(x.name))));
+  if (p) { openTask(taskFromPlace(p), true); toast('☀️ من يومي: ' + p.name); return; }
+  if (isMobile()) setTab('add');
+  searchTarget = 'task'; quickCtx = null;
+  $('#searchInput').value = q;
+  toast('☀️ من يومي: أدور على ' + q);
+  let tries = 0;
+  const go = () => { if (googleReady) doSearch(q); else if (++tries < 20) setTimeout(go, 500); };
+  go();
+}
+
 window.__tm = { parseQuick,  get sched() { return sched; }, get plan() { return plan; }, get places() { return places; }, checkArrival, settings, compute, phaseAt, decodePolyline, D, T, legCache };
 init();
+setTimeout(handleYawmiLink, 400);
 })();
 </script>
 </body>
