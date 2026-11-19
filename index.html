@@ -443,6 +443,7 @@ details.more-opts[open]{padding-bottom:12px}
         <button class="m-list-row" data-more="gmaps"><span class="m-ico">🗺️</span><span class="grow">افتح يومي في جوجل ماب</span><span class="chev">‹</span></button>
         <button class="m-list-row" data-more="report"><span class="m-ico">📊</span><span class="grow">تقرير الأسبوع</span><span class="chev">‹</span></button>
         <button class="m-list-row" data-more="car"><span class="m-ico">🅿️</span><span class="grow">مكان السيارة</span><span class="chev">‹</span></button>
+        <button class="m-list-row" data-more="yawmi"><span class="m-ico">☀️</span><span class="grow">ربط يومي<small id="yawmiSub">مشاويرك تنضاف لجدولك في يومي</small></span><span class="chev">‹</span></button>
       </div>
       <div class="group-title">البداية والتنقل</div>
     </section>
@@ -1091,7 +1092,7 @@ let computeGen = 0;
 async function compute(force = false) {
   const gen = ++computeGen;
   const home = settings.home, tasks = plan.tasks;
-  if (!home || !tasks.some(t => !t.done)) { sched = null; lastCompute = Date.now(); renderAll(); return; }
+  if (!home || !tasks.some(t => !t.done)) { sched = null; lastCompute = Date.now(); if (!tasks.length) queueYawmi(); renderAll(); return; }
   $('#refreshBtn').disabled = true;
   try {
     const now = Date.now();
@@ -1134,6 +1135,7 @@ async function compute(force = false) {
     }
     sched = { readyMs, legs, stops, start, homeArrive, end: homeArrive ?? avail };
     lastCompute = Date.now();
+    queueYawmi();
     saveStats(); ensureHours();
     renderAll(); checkArrival(); markVisits(); checkLeave(); renderDue();
   } finally { if (gen === computeGen) $('#refreshBtn').disabled = false; }
@@ -2175,11 +2177,68 @@ function wireMobile() {
   };
   const more = e => {
     const b = e.target.closest('[data-more]'); if (!b) return;
-    ({ tpl: () => $('#btnTpl').click(), ics: exportIcs, gmaps: () => window.open($('#openAllGmaps').href, '_blank'), report: () => $('#btnReport').click(), car: openCar, settings: openSettings, diag: runDiagnostics })[b.dataset.more]?.();
+    ({ tpl: () => $('#btnTpl').click(), ics: exportIcs, gmaps: () => window.open($('#openAllGmaps').href, '_blank'), report: () => $('#btnReport').click(), car: openCar, settings: openSettings, diag: runDiagnostics, yawmi: linkYawmi })[b.dataset.more]?.();
   };
   $('#mMore').onclick = more; $('#mMore2').onclick = more;
   addEventListener('resize', () => { if (isMobile()) { if (!document.body.dataset.tab) document.body.dataset.tab = 'today'; buildHead(); renderMobile(); } });
 }
+
+/* ───────────────────────── ربط يومي ─────────────────────────
+   مشاوير اليوم تنرسل لموقع «يومي» عشان تنحسب في جدولك: وقت الطلعة، كل مكان (توصل وتطلع)، والرجعة.
+   كود الربط من يومي: ملفي ← خريطة المهام (فيه رابط يومي ورمز سري، وينحفظ في جهازك بس). */
+let yawmiTimer = null, yawmiLast = '';
+function yawmiCfg() {
+  const c = String(settings.yawmi || '').trim();
+  if (!c.startsWith('yawmi:')) return null;
+  try { const j = JSON.parse(atob(c.slice(6).replace(/-/g, '+').replace(/_/g, '/'))); return j && j.u && j.t ? j : null; } catch { return null; }
+}
+function yawmiBody() {
+  const stops = [];
+  if (sched) plan.tasks.forEach((t, i) => { const s = sched.stops[i]; if (s) stops.push({ name: String(t.name || 'مكان').slice(0, 120), emoji: t.emoji || '📍', arrive: Math.round(s.arrive), leave: Math.round(s.leave) }); });
+  const depart = sched && sched.legs[0] ? sched.legs[0].depart : Date.now();
+  return { date: planDate, depart: Math.round(depart), end: Math.round(sched ? sched.end : depart), returnHome: !!plan.returnHome, stops };
+}
+function queueYawmi() {
+  if (!yawmiCfg()) return;
+  clearTimeout(yawmiTimer);
+  yawmiTimer = setTimeout(() => sendYawmi(false), 2500);
+}
+async function sendYawmi(manual) {
+  const cfg = yawmiCfg(); if (!cfg) return false;
+  const body = JSON.stringify(yawmiBody());
+  if (!manual && body === yawmiLast) return true;
+  try {
+    const r = await fetch(cfg.u, { method: 'POST', headers: { 'content-type': 'application/json', 'x-yawmi-token': cfg.t }, body });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    yawmiLast = body;
+    settings.yawmiAt = Date.now(); saveSettings(); yawmiLabel();
+    if (manual) toast('انضاف مشوارك لجدولك في يومي ✅');
+    return true;
+  } catch (e) {
+    if (manual) toast('ما قدرت أوصل ليومي (' + e.message + '). تأكد من كود الربط', true, 6000);
+    return false;
+  }
+}
+function yawmiLabel() {
+  const el = document.getElementById('yawmiSub'); if (!el) return;
+  el.textContent = yawmiCfg() ? ('مربوط ✅' + (settings.yawmiAt ? ' · آخر إرسال ' + T(settings.yawmiAt) : '')) : 'مشاويرك تنضاف لجدولك في يومي';
+}
+async function linkYawmi() {
+  if (yawmiCfg()) {
+    const v = prompt('مربوط مع يومي ✅\nاضغط «موافق» عشان ترسل مشوار اليوم الحين.\nولو تبي تفك الربط، امسح الكود واضغط موافق.', settings.yawmi);
+    if (v === null) return;
+    if (!v.trim()) { settings.yawmi = ''; settings.yawmiAt = 0; saveSettings(); yawmiLabel(); toast('انفك الربط مع يومي'); return; }
+    settings.yawmi = v.trim(); saveSettings();
+  } else {
+    const v = prompt('الصق كود الربط من يومي\n(في يومي: المزيد ← ملفي ← خريطة المهام ← انسخ)');
+    if (!v) return;
+    settings.yawmi = v.trim(); saveSettings();
+    if (!yawmiCfg()) { toast('الكود مو صحيح، انسخه من جديد', true); settings.yawmi = ''; saveSettings(); return; }
+  }
+  yawmiLast = '';
+  await sendYawmi(true);
+}
+setTimeout(yawmiLabel, 0);
 
 /* ───────────────────────── Diagnostics ───────────────────────── */
 function showDiag(title, rows) {
