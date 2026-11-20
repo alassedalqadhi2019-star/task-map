@@ -1368,7 +1368,9 @@ function choosePlace(p) {
   if (searchTarget === 'home') { setHome({ ...p, name: 'البيت' }); searchTarget = 'task'; $('#searchInput').placeholder = 'ابحث عن مكان… (مثلاً: جولدز جيم)'; return; }
   const q = quickCtx; quickCtx = null;
   document.querySelectorAll('#quickChips .chip').forEach(c => c.classList.remove('on'));
-  openTask({ id: Math.random().toString(36).slice(2, 9), name: p.name, placeName: p.name, address: p.address, placeId: p.placeId, lat: p.lat, lng: p.lng, emoji: q?.e || guessEmoji(p.name), stayMin: learnedStay(p)?.min || q?.stay || 60, arriveMode: 'after', arriveAt: '' }, true);
+  // من يومي: المدة ووقت الوصول جاهزين
+  const fromY = q?.fromYawmi;
+  openTask({ id: Math.random().toString(36).slice(2, 9), name: p.name, placeName: p.name, address: p.address, placeId: p.placeId, lat: p.lat, lng: p.lng, emoji: q?.e || guessEmoji(p.name), stayMin: (fromY && q?.stay) || learnedStay(p)?.min || q?.stay || 60, arriveMode: q?.time ? 'at' : 'after', arriveAt: q?.time || '' }, true);
   view?.focus?.({ lat: p.lat, lng: p.lng });
 }
 function setHome(p) {
@@ -2496,21 +2498,36 @@ function init() {
   recompute();
 }
 
-/* رابط من «يومي»: ?add=اسم المكان&q=كلمة البحث
-   لو المكان من أماكني ينضاف على طول، وإلا أدور عليه. */
+/* رابط من «يومي»: ?add=اسم المكان&q=كلمة البحث&at=16:30&stay=120&date=2026-11-21&e=☕
+   at = لازم توصل الساعة كذا، stay = كم بتجلس، date = أي يوم.
+   لو المكان من أماكني ينضاف على طول، وإلا أدور عليه. ولو هو أصلًا في مشوار اليوم، أحدّثه بدل ما أكرره. */
 function handleYawmiLink() {
   const u = new URL(location.href);
   const name = (u.searchParams.get('add') || '').trim();
   if (!name) return;
   const q = (u.searchParams.get('q') || name).trim();
+  const at = (u.searchParams.get('at') || '').trim();
+  const stay = Math.max(0, Math.min(720, +u.searchParams.get('stay') || 0));
+  const date = (u.searchParams.get('date') || '').trim();
+  const emoji = (u.searchParams.get('e') || '').trim();
   history.replaceState(null, '', location.pathname);
+  // اليوم اللي تبيه (بكرة مثلًا)
+  if (/^\d{4}-\d{2}-\d{2}$/.test(date) && date !== planDate) {
+    $('#planDate').value = date; $('#planDate').dispatchEvent(new Event('change'));
+    try { buildHead(); renderMobile(); } catch {}
+  }
+  const time = /^\d{1,2}:\d{2}$/.test(at) ? at.padStart(5, '0') : '';
+  const fill = t => { if (stay) t.stayMin = stay; if (time) { t.arriveMode = 'at'; t.arriveAt = time; } return t; };
   const n = s => String(s || '').toLowerCase().replace(/\s+/g, ' ').trim();
   const p = places.find(x => n(x.name) === n(name)) || places.find(x => n(x.name).includes(n(q)) || (n(q).length > 2 && n(q).includes(n(x.name))));
-  if (p) { openTask(taskFromPlace(p), true); toast('☀️ من يومي: ' + p.name); return; }
+  const when = (time ? ` · توصل ${time}` : '') + (stay ? ` · ${D(stay * 60)}` : '');
+  const ex = plan.tasks.find(t => !t.done && (n(t.name) === n(name) || (p && t.placeRef === p.id)));
+  if (ex) { fill(ex); savePlan?.(); recompute(); openTask(ex, false); toast('☀️ من يومي: حدّثت ' + ex.name + when); return; }
+  if (p) { openTask(fill(taskFromPlace(p)), true); toast('☀️ من يومي: ' + p.name + when + ' — اضغط ضيف'); return; }
   if (isMobile()) setTab('add');
-  searchTarget = 'task'; quickCtx = null;
+  searchTarget = 'task'; quickCtx = { e: emoji || undefined, stay: stay || undefined, time: time || undefined, fromYawmi: true };
   $('#searchInput').value = q;
-  toast('☀️ من يومي: أدور على ' + q);
+  toast('☀️ من يومي: أدور على ' + q + when + ' — اختار المكان');
   let tries = 0;
   const go = () => { if (googleReady) doSearch(q); else if (++tries < 20) setTimeout(go, 500); };
   go();
