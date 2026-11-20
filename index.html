@@ -755,7 +755,7 @@ const loadPlan = d => Object.assign({ tasks: [], readyAt: '', returnHome: true }
 let plan = loadPlan(planDate);
 const savePlan = () => LS.set('plan.' + planDate, plan);
 let places = LS.get('places', []);
-const savePlaces = () => LS.set('places', places);
+const savePlaces = () => { LS.set('places', places); try { queueYawmiPlaces(); } catch {} };
 const uid = () => Math.random().toString(36).slice(2, 9);
 const findPlace = t => places.find(p => (t.placeRef && p.id === t.placeRef) || (t.placeId && p.placeId === t.placeId) || haversine(p, t) < 40);
 const todosLeft = t => (t.todos || []).filter(x => !x.done).length;
@@ -2221,6 +2221,25 @@ async function sendYawmi(manual) {
     return false;
   }
 }
+/* «أماكني» تنرسل ليومي عشان تطلع في «وين؟» (بس الاسم والإيموجي والمدة) */
+let yawmiPlacesTimer = null;
+function queueYawmiPlaces() {
+  if (!yawmiCfg()) return;
+  clearTimeout(yawmiPlacesTimer);
+  yawmiPlacesTimer = setTimeout(sendYawmiPlaces, 1500);
+}
+async function sendYawmiPlaces() {
+  const cfg = yawmiCfg(); if (!cfg) return;
+  const list = places.map(p => ({ name: String(p.name || '').slice(0, 120), emoji: p.emoji || '📍', stay: Math.round(p.stayMin || 60) })).filter(p => p.name);
+  const body = JSON.stringify({ places: list });
+  if (body === settings.yawmiPlaces) return;
+  try {
+    const r = await fetch(cfg.u, { method: 'POST', headers: { 'content-type': 'application/json', 'x-yawmi-token': cfg.t }, body });
+    if (r.ok) { settings.yawmiPlaces = body; saveSettings(); }
+  } catch {}
+}
+setTimeout(() => { try { sendYawmiPlaces(); } catch {} }, 2500);
+
 function yawmiLabel() {
   const el = document.getElementById('yawmiSub'); if (!el) return;
   el.textContent = yawmiCfg() ? ('مربوط ✅' + (settings.yawmiAt ? ' · آخر إرسال ' + T(settings.yawmiAt) : '')) : 'مشاويرك تنضاف لجدولك في يومي';
