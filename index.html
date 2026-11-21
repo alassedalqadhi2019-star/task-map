@@ -2230,7 +2230,7 @@ function queueYawmiPlaces() {
 }
 async function sendYawmiPlaces() {
   const cfg = yawmiCfg(); if (!cfg) return;
-  const list = places.map(p => ({ name: String(p.name || '').slice(0, 120), emoji: p.emoji || '📍', stay: Math.round(p.stayMin || 60) })).filter(p => p.name);
+  const list = places.map(p => ({ name: String(p.name || '').slice(0, 120), emoji: p.emoji || '📍', stay: Math.round(p.stayMin || 60), lat: typeof p.lat === 'number' ? +p.lat.toFixed(5) : undefined, lng: typeof p.lng === 'number' ? +p.lng.toFixed(5) : undefined })).filter(p => p.name);
   const body = JSON.stringify({ places: list });
   if (body === settings.yawmiPlaces) return;
   try {
