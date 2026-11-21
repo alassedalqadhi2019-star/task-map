@@ -1375,7 +1375,7 @@ function choosePlace(p) {
 }
 function setHome(p) {
   settings.home = { name: p.name || 'البيت', lat: p.lat, lng: p.lng, address: p.address || '', placeId: p.placeId || null };
-  saveSettings(); renderHome(); fittedOnce = false; recompute(); toast('تم تحديد البيت ✓');
+  saveSettings(); renderHome(); fittedOnce = false; recompute(); toast('تم تحديد البيت ✓'); try { queueYawmiPlaces(); } catch {}
 }
 function startPick(what) {
   if (!view?.map) { toast('الخريطة مو جاهزة، اربط مفتاح جوجل أول', true); return; }
@@ -2231,7 +2231,8 @@ function queueYawmiPlaces() {
 async function sendYawmiPlaces() {
   const cfg = yawmiCfg(); if (!cfg) return;
   const list = places.map(p => ({ name: String(p.name || '').slice(0, 120), emoji: p.emoji || '📍', stay: Math.round(p.stayMin || 60), lat: typeof p.lat === 'number' ? +p.lat.toFixed(5) : undefined, lng: typeof p.lng === 'number' ? +p.lng.toFixed(5) : undefined })).filter(p => p.name);
-  const body = JSON.stringify({ places: list });
+  const h = settings.home && typeof settings.home.lat === 'number' ? { lat: +settings.home.lat.toFixed(5), lng: +settings.home.lng.toFixed(5) } : null;
+  const body = JSON.stringify({ places: list, home: h });
   if (body === settings.yawmiPlaces) return;
   try {
     const r = await fetch(cfg.u, { method: 'POST', headers: { 'content-type': 'application/json', 'x-yawmi-token': cfg.t }, body });
