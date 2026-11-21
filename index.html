@@ -1370,7 +1370,7 @@ function choosePlace(p) {
   document.querySelectorAll('#quickChips .chip').forEach(c => c.classList.remove('on'));
   // من يومي: المدة ووقت الوصول جاهزين
   const fromY = q?.fromYawmi;
-  openTask({ id: Math.random().toString(36).slice(2, 9), name: p.name, placeName: p.name, address: p.address, placeId: p.placeId, lat: p.lat, lng: p.lng, emoji: q?.e || guessEmoji(p.name), stayMin: (fromY && q?.stay) || learnedStay(p)?.min || q?.stay || 60, arriveMode: q?.time ? 'at' : 'after', arriveAt: q?.time || '' }, true);
+  openTask({ id: Math.random().toString(36).slice(2, 9), name: p.name, placeName: p.name, address: p.address, placeId: p.placeId, lat: p.lat, lng: p.lng, emoji: q?.e || guessEmoji(p.name), stayMin: (fromY && q?.stay) || learnedStay(p)?.min || q?.stay || 60, arriveMode: q?.time ? 'at' : 'after', arriveAt: q?.time || '', todos: (q?.todo || []).map(text => ({ id: uid(), text, done: false })) }, true);
   view?.focus?.({ lat: p.lat, lng: p.lng });
 }
 function setHome(p) {
@@ -2529,6 +2529,8 @@ function handleYawmiLink() {
   const stay = Math.max(0, Math.min(720, +u.searchParams.get('stay') || 0));
   const date = (u.searchParams.get('date') || '').trim();
   const emoji = (u.searchParams.get('e') || '').trim();
+  // 🛒 قائمة المقاضي من يومي (تنحط كمهام على المكان)
+  const todo = (u.searchParams.get('todo') || '').split('|').map(x => x.trim()).filter(Boolean).slice(0, 30);
   history.replaceState(null, '', location.pathname);
   // اليوم اللي تبيه (بكرة مثلًا)
   if (/^\d{4}-\d{2}-\d{2}$/.test(date) && date !== planDate) {
@@ -2536,15 +2538,16 @@ function handleYawmiLink() {
     try { buildHead(); renderMobile(); } catch {}
   }
   const time = /^\d{1,2}:\d{2}$/.test(at) ? at.padStart(5, '0') : '';
-  const fill = t => { if (stay) t.stayMin = stay; if (time) { t.arriveMode = 'at'; t.arriveAt = time; } return t; };
   const n = s => String(s || '').toLowerCase().replace(/\s+/g, ' ').trim();
+  const addTodos = t => { if (!todo.length) return; t.todos = t.todos || []; const have = new Set(t.todos.map(x => n(x.text))); todo.forEach(x => { if (!have.has(n(x))) t.todos.push({ id: uid(), text: x, done: false }); }); };
+  const fill = t => { if (stay) t.stayMin = stay; if (time) { t.arriveMode = 'at'; t.arriveAt = time; } addTodos(t); return t; };
   const p = places.find(x => n(x.name) === n(name)) || places.find(x => n(x.name).includes(n(q)) || (n(q).length > 2 && n(q).includes(n(x.name))));
-  const when = (time ? ` · توصل ${time}` : '') + (stay ? ` · ${D(stay * 60)}` : '');
+  const when = (time ? ` · توصل ${time}` : '') + (stay ? ` · ${D(stay * 60)}` : '') + (todo.length ? ` · 🛒 ${todo.length} أغراض` : '');
   const ex = plan.tasks.find(t => !t.done && (n(t.name) === n(name) || (p && t.placeRef === p.id)));
   if (ex) { fill(ex); savePlan?.(); recompute(); openTask(ex, false); toast('☀️ من يومي: حدّثت ' + ex.name + when); return; }
   if (p) { openTask(fill(taskFromPlace(p)), true); toast('☀️ من يومي: ' + p.name + when + ' — اضغط ضيف'); return; }
   if (isMobile()) setTab('add');
-  searchTarget = 'task'; quickCtx = { e: emoji || undefined, stay: stay || undefined, time: time || undefined, fromYawmi: true };
+  searchTarget = 'task'; quickCtx = { e: emoji || undefined, stay: stay || undefined, time: time || undefined, todo, fromYawmi: true };
   $('#searchInput').value = q;
   toast('☀️ من يومي: أدور على ' + q + when + ' — اختار المكان');
   let tries = 0;
